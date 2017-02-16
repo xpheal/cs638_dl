@@ -163,12 +163,12 @@ class ExampleList{
 
 class ProteinData{
 	private List<List<String>> proteins;
-	private List<List<String>> labels;
+	private List<List<String>> proteinTypes;
 	private DataInfo di;
 
 	public ProteinData(CommentScanner scn){
 		proteins = new ArrayList<List<String>>();
-		labels = new ArrayList<List<String>>();
+		proteinTypes = new ArrayList<List<String>>();
 		List<String> protein = new ArrayList<String>();
 		List<String> label = new ArrayList<String>();
 		Boolean reset = false;
@@ -184,7 +184,7 @@ class ProteinData{
 			if(reset){
 				// New protein
 				proteins.add(protein);
-				labels.add(label);
+				proteinTypes.add(label);
 				protein = new ArrayList<String>();
 				label = new ArrayList<String>();
 				reset = false;
@@ -197,9 +197,9 @@ class ProteinData{
 		}
 
 		proteins.add(protein);
-		labels.add(label);
+		proteinTypes.add(label);
 		proteins.remove(0);
-		labels.remove(0);
+		proteinTypes.remove(0);
 
 		setDataInfo();
 	}
@@ -207,6 +207,7 @@ class ProteinData{
 	public void setDataInfo(){
 		di = new DataInfo();
 		Set<String> features = new HashSet<String>();
+		Set<String> labels = new HashSet<String>();
 
 		for(List<String> list : proteins){
 			for(String x : list){
@@ -214,7 +215,14 @@ class ProteinData{
 			}
 		}
 
+		for(List<String> list : proteinTypes){
+			for(String x : list){
+				labels.add(x);
+			}
+		}
+
 		System.out.println(features.toString());
+		System.out.println(labels.toString());
 	}
 }
 
@@ -331,7 +339,7 @@ public class Lab2W{
 		CommentScanner inputScn = new CommentScanner(args[0]);
 
 		ProteinData proteinData = new ProteinData(inputScn);
-		
+
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
 
