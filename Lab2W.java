@@ -9,60 +9,12 @@ class DataInfo{
 	List<List<String>> featureValues;
 	String[] labelValues;
 
-	public DataInfo(CommentScanner scn){
+	public DataInfo(){
 		// Get number of features
-		if(scn.hasNext()){
-			numFeatures = scn.nextInt();
-			if(numFeatures == -1){
-				System.err.println("Invalid file format for file: " + scn.getFileName());
-				System.exit(-1);	
-			}
-		}
-		else{
-			System.err.println("Invalid file format for file: " + scn.getFileName());
-			System.exit(-1);
-		}
+	}
 
-		// Get feature names and feature values
-		featureNames = new String[numFeatures];
-		featureValues = new ArrayList<List<String>>();
+	public void set(int numFeatures, String[] featureNames, List<List<String>> featureValues, List<List<String>> labelValues){
 
-		for(int i = 0; i < numFeatures; i++){
-			if(scn.hasNext()){
-				String[] nextString = scn.next().split("-");
-
-				if(nextString.length != 2){
-					System.err.println("Invalid file format for file: " + scn.getFileName());	
-					System.exit(-1);
-				}
-
-				featureNames[i] = nextString[0].trim();
-
-				String[] values = nextString[1].trim().split(" ");
-				featureValues.add(new ArrayList<String>());
-
-				for(int j = 0; j < values.length; j++){
-					featureValues.get(i).add(values[j].trim());
-				}
-			}
-			else{
-				System.err.println("Invalid file format for file: " + scn.getFileName());
-				System.exit(-1);
-			}			
-		}
-
-		// Get label values, assume boolean labels
-		labelValues = new String[2];
-
-		for(int i = 0; i < 2; i++){
-			if(scn.hasNext()){
-				labelValues[i] = scn.next();
-			}
-			else{
-				System.err.println("Invalid file format for file: " + scn.getFileName());
-				System.exit(-1);
-			}
-		}
 	}
 
 	// Print out DataInfo
@@ -358,11 +310,11 @@ class Perceptron{
 	}
 }	
 
-public class Lab1{
+public class Lab2W{
 	// Check for correct program arguments
 	public static void checkArgs(String[] args){
 		if(args.length != 1){
-			System.err.println("Usage: Lab2 <fileNameOfData>");
+			System.err.println("Usage: Lab2W <fileNameOfData>");
 			System.exit(-1);
 		}
 	}
@@ -373,15 +325,53 @@ public class Lab1{
 		// Scanner that ignore comments for files
 		CommentScanner inputScn = new CommentScanner(args[0]);
 
+		List<List<String>> proteins = new ArrayList<List<String>>();
+		List<List<String>> labels = new ArrayList<List<String>>();
+		List<String> protein = new ArrayList<String>();
+		List<String> label = new ArrayList<String>();
+		Boolean reset = false;
+
 		while(inputScn.hasNext()){
-			System.out.println(inputScn.next());
+			String in = inputScn.next().trim().toLowerCase();
+
+			if(in.equals("<>") || in.equals("<end>") || in.equals("end")){
+				reset = true;
+				continue;
+			}
+
+			if(reset){
+				// New protein
+				proteins.add(protein);
+				labels.add(label);
+				protein = new ArrayList<String>();
+				label = new ArrayList<String>();
+				reset = false;
+			}
+
+			// Same protein
+			String[] inSplit = in.split(" ");
+			protein.add(inSplit[0].trim().toLowerCase());
+			label.add(inSplit[1].trim().toLowerCase());
 		}
 
+		proteins.add(protein);
+		labels.add(label);
+
+		int total = 0;
+		for(int i = 0; i < proteins.size(); i++){
+			total += proteins.get(i).size();
+			System.out.println("Protein " + i + ": " + proteins.get(i).size());
+		}
+
+		System.out.println("Total: " + total);
+		System.out.println(proteins.get(1).toString());
+		System.out.println(proteins.get(128).toString());
+
 		// Load metadata of the files
-		// DataInfo dataInfo = new DataInfo(trainScn);
+		// DataInfo dataInfo = new DataInfo();
 
 		// Load examples
-		// ExampleList trainEx = new ExampleList(trainScn, dataInfo);
+		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
 
 		// Initialize perceptrons
 		// Perceptron perceptron = new Perceptron(dataInfo, 0.1);
