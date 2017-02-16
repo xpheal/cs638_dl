@@ -151,10 +151,12 @@ class ExampleList{
 	// First item is the label while the rest are features
 	List<List<Integer>> examples;
 	int numExamples;
+	int windowSize;
 
 	public ExampleList(){
 		examples = new ArrayList<List<Integer>>();
 		numExamples = 0;
+		windowSize = 1;
 	}
 
 	// Set examples using sliding window of size windowSize
@@ -187,6 +189,7 @@ class ExampleList{
 		}
 
 		numExamples = examples.size();
+		this.windowSize = windowSize;
 	}
 
 	// Print out all examples
@@ -335,101 +338,67 @@ class ProteinData{
 }
 
 // Single Perceptron
-// class Perceptron{
-// 	DataInfo di;
-// 	double weights[];
-// 	double learningRate;
+class Perceptron{
+	String actFunc;
+	int numIn;
+	double weights[];
 
-// 	public Perceptron(DataInfo di){
-// 		new Perceptron(di, 0.1);
-// 	}
+	// actFunc = activation Function of the perceptron, can be either "rec" for rectified linear or "sig" for sigmoidal
+	// numIn = number of input weights
+	public Perceptron(int numIn, String actFunc){
+		if(!actFunc.equals("rec") && !actFunc.equals("sig")){
+			System.err.println("Invalid activation function parameter");
+			System.exit(-1);
+		}
 
-// 	public Perceptron(DataInfo di, double learningRate){
-// 		this.di = di;
-// 		this.learningRate = learningRate;
+		this.actFunc = actFunc;
+		this.numIn = numIn;
+		weights = new double[numIn + 1]; // +1 for bias
 
-// 		Random rdm = new Random();
-// 		weights = new double[di.numFeatures + 1];
+		// Initialize weights
+		for(int i = 0; i < weights.length; i++){
+			weights[i] = Math.random() * 2 - 1;
+		}
+	}
 
-// 		for(int i = 0; i < di.numFeatures + 1; i++){
-// 			weights[i] = rdm.nextDouble();
-// 		}
-// 	}
+	public double feedForward(List<Integer> inputs){
+		if(inputs.size() != numIn){
+			System.err.println("Wrong number of inputs for this perceptron!");
+			System.exit(-1);
+		}
 
-// 	// Get the weights of this perceptron
-// 	public double[] getWeights(){
-// 		return weights;
-// 	}
+		double total = 0;
 
-// 	// Set the weights of this perceptron
-// 	public void setWeights(double[] x){
-// 		weights = x;
-// 	}
+		for(int i = 0; i < numIn; i++){
+			total += inputs.get(i) * weights[i];
+		}
 
-// 	// Train the perceptron with examples
-// 	public void train(ExampleList ex){
-// 		for(int i = 0; i < ex.numExamples; i++){
-// 			double diff = learningRate * (ex.examples[i][weights.length - 1] - predict(ex.examples[i]));
+		total += weights[numIn]; // bias
 
-// 			for(int j = 0; j < weights.length - 1; j++){
-// 				weights[j] += diff * ex.examples[i][j];
-// 			}
+		switch(actFunc){
+			case "rec":
+				return recL(total);
+			case "sig":
+				return sigM(total);
+			default:
+				System.err.println("Error, shouldn't reach this line of code");
+				System.exit(-1);
+				return -1;
+		}
+	}
 
-// 			weights[weights.length - 1] += diff;
-// 		}
-// 	}
+	public void backPropagate(double error){
 
-// 	// Predict the value of an example
-// 	public int predict(int[] row){
-// 		double sum = 0;
+	}
+	
+	private double sigM(double x){
+		return 1 / (1 + Math.exp(-x));
+	}
 
-// 		for(int i = 0; i < row.length; i++){
-// 			sum += row[i] * weights[i];
-// 		}
-
-// 		sum += weights[weights.length - 1];
-
-// 		if(sum >= 0){
-// 			return 1;
-// 		}
-// 		else{
-// 			return 0;
-// 		}
-// 	}
-
-// 	// Prediction on an entire set of examples
-// 	public double test(ExampleList ex){
-// 		double sum = 0;
-
-// 		for(int i = 0; i < ex.numExamples; i++){
-// 			if(predict(ex.examples[i]) == ex.examples[i][ex.examples[0].length - 1]){
-// 				sum += 1;
-// 			}
-// 		}
-
-// 		return sum / ex.numExamples;
-// 	}
-
-// 	// Prediction on an entire set of examples with output
-// 	public double testWithOutput(ExampleList ex){
-// 		double sum = 0;
-
-// 		for(int i = 0; i < ex.numExamples; i++){
-// 			int prediction = predict(ex.examples[i]);
-// 			if(prediction == ex.examples[i][ex.examples[0].length - 1]){
-// 				sum += 1;
-// 			}
-// 			// System.out.println(di.indexToLabel(prediction));
-// 		}
-		
-// 		return sum / ex.numExamples;	
-// 	}
-
-// 	// Set the learning rate of the perceptron
-// 	public void setLearningRate(double x){
-// 		learningRate = x;
-// 	}
-// }	
+	private double recL(double x){
+		return Math.max(0, x);
+	}
+}	
 
 public class Lab2W{
 	// Check for correct program arguments
@@ -448,6 +417,13 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
+		Perceptron y = new Perceptron(proteinData.trainList.windowSize, "rec");
+		
+		for(List<Integer> x : proteinData.trainList.examples){
+			x.remove(0);
+			System.out.println(y.feedForward(x));
+		}
+		
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
 
