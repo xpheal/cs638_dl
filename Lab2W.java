@@ -9,10 +9,6 @@ class DataInfo{
 	List<List<String>> featureValues;
 	String[] labelValues;
 
-	public DataInfo(){
-		// Get number of features
-	}
-
 	public void set(int numFeatures, String[] featureNames, List<List<String>> featureValues, List<List<String>> labelValues){
 
 	}
@@ -149,54 +145,6 @@ class ExampleList{
 	int numExamples;
 
 	public ExampleList(CommentScanner scn, DataInfo di){
-		// Set up array
-		if(scn.hasNext()){
-			numExamples = scn.nextInt();
-			if(numExamples == -1){
-				System.err.println("Invalid file format for file: " + scn.getFileName());
-				System.exit(-1);	
-			}
-		}
-		else{
-			System.err.println("Invalid file format for file: " + scn.getFileName());
-			System.exit(-1);
-		}
-
-		examples = new int[numExamples][di.numFeatures + 1];
-
-		// Load examples
-		for(int i = 0; i < numExamples; i++){
-			if(scn.hasNext()){
-				String[] nextString = scn.next().split("\\s+");
-
-				if(nextString.length != di.numFeatures + 2){
-					System.err.println("Invalid file format for file: " + scn.getFileName());	
-					System.exit(-1);
-				}
-				
-				// Get examples
-				for(int j = 0; j < di.numFeatures; j++){
-					examples[i][j] = di.getFeatureValueIndex(j, nextString[j + 2]);
-					
-					if(examples[i][j] == -1){
-						System.err.println("Invalid feature value: " + nextString[j + 2]);
-						System.exit(-1);
-					}					
-				}
-
-				// Get Label
-				examples[i][di.numFeatures] = di.getLabelIndex(nextString[1]); // Label
-
-				if(examples[i][di.numFeatures] == -1){
-					System.err.println("Invalid label: " + nextString[1]);
-					System.exit(-1);
-				}
-			}
-			else{
-				System.err.println("Invalid file format for file: " + scn.getFileName());
-				System.exit(-1);
-			}
-		}
 	}
 
 	// Print out all examples
@@ -210,6 +158,63 @@ class ExampleList{
 
 			System.out.println(examples[i][examples[0].length - 1]);
 		}
+	}
+}
+
+class ProteinData{
+	private List<List<String>> proteins;
+	private List<List<String>> labels;
+	private DataInfo di;
+
+	public ProteinData(CommentScanner scn){
+		proteins = new ArrayList<List<String>>();
+		labels = new ArrayList<List<String>>();
+		List<String> protein = new ArrayList<String>();
+		List<String> label = new ArrayList<String>();
+		Boolean reset = false;
+
+		while(scn.hasNext()){
+			String in = scn.next().trim().toLowerCase();
+
+			if(in.equals("<>") || in.equals("<end>") || in.equals("end")){
+				reset = true;
+				continue;
+			}
+
+			if(reset){
+				// New protein
+				proteins.add(protein);
+				labels.add(label);
+				protein = new ArrayList<String>();
+				label = new ArrayList<String>();
+				reset = false;
+			}
+
+			// Same protein
+			String[] inSplit = in.split(" ");
+			protein.add(inSplit[0].trim().toLowerCase());
+			label.add(inSplit[1].trim().toLowerCase());
+		}
+
+		proteins.add(protein);
+		labels.add(label);
+		proteins.remove(0);
+		labels.remove(0);
+
+		setDataInfo();
+	}
+
+	public void setDataInfo(){
+		di = new DataInfo();
+		Set<String> features = new HashSet<String>();
+
+		for(List<String> list : proteins){
+			for(String x : list){
+				features.add(x);
+			}
+		}
+
+		System.out.println(features.toString());
 	}
 }
 
@@ -325,51 +330,8 @@ public class Lab2W{
 		// Scanner that ignore comments for files
 		CommentScanner inputScn = new CommentScanner(args[0]);
 
-		List<List<String>> proteins = new ArrayList<List<String>>();
-		List<List<String>> labels = new ArrayList<List<String>>();
-		List<String> protein = new ArrayList<String>();
-		List<String> label = new ArrayList<String>();
-		Boolean reset = false;
-
-		while(inputScn.hasNext()){
-			String in = inputScn.next().trim().toLowerCase();
-
-			if(in.equals("<>") || in.equals("<end>") || in.equals("end")){
-				reset = true;
-				continue;
-			}
-
-			if(reset){
-				// New protein
-				proteins.add(protein);
-				labels.add(label);
-				protein = new ArrayList<String>();
-				label = new ArrayList<String>();
-				reset = false;
-			}
-
-			// Same protein
-			String[] inSplit = in.split(" ");
-			protein.add(inSplit[0].trim().toLowerCase());
-			label.add(inSplit[1].trim().toLowerCase());
-		}
-
-		proteins.add(protein);
-		labels.add(label);
-
-		int total = 0;
-		for(int i = 0; i < proteins.size(); i++){
-			total += proteins.get(i).size();
-			System.out.println("Protein " + i + ": " + proteins.get(i).size());
-		}
-
-		System.out.println("Total: " + total);
-		System.out.println(proteins.get(1).toString());
-		System.out.println(proteins.get(128).toString());
-
-		// Load metadata of the files
-		// DataInfo dataInfo = new DataInfo();
-
+		ProteinData proteinData = new ProteinData(inputScn);
+		
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
 
