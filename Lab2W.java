@@ -579,15 +579,16 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 100, proteinData.di.numLabels);
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 200, proteinData.di.numLabels);
 
 		// proteinData.di.print();
-		System.out.println(nn.test(proteinData.tuneList.examples));
-
-		for(int i = 0; i < 200; i++){
-			nn.train(proteinData.tuneList.examples);
+		while(nn.test(proteinData.tuneList.examples) < 0.6){
+			for(int i = 0; i < 10; i++){
+				nn.train(proteinData.trainList.examples);
+			}
 		}
-		System.out.println(nn.test(proteinData.tuneList.examples));
+
+		System.out.println(nn.test(proteinData.testList.examples));
 
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
