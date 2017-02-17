@@ -405,7 +405,8 @@ class Perceptron{
 		// Update all weights
 		for(int i = 0; i < numIn; i++){
 			deltaList[i] = newDelta * weights[i];
-			weights[i] -= learningRate * newDelta * inputs.get(i);
+			double ll = learningRate * newDelta * inputs.get(i);
+			weights[i] -= ll;
 		}
 
 		// Update bias
@@ -430,6 +431,10 @@ class Perceptron{
 			return 0;
 		}
 	}
+
+	public double[] getWeights(){
+		return weights;
+	}
 }
 
 class NeuralNetwork{
@@ -450,7 +455,7 @@ class NeuralNetwork{
 		hiddenLayer = new ArrayList<Perceptron>();
 
 		for(int i = 0; i < numHiddenUnits; i++){
-			hiddenLayer.add(new Perceptron(numInputs, "rec", 0.01));
+			hiddenLayer.add(new Perceptron(numInputs, "sig", 0.01));
 			hiddenLayerOutputs.add(0.0);
 		}
 
@@ -474,7 +479,7 @@ class NeuralNetwork{
 			List<double[]> deltas = new ArrayList<double[]>();
 
 			for(int i = 0; i < numClass; i++){
-				deltas.add(outputLayer.get(i).backPropagate(outputs[i] - actuals[i]));
+				deltas.add(outputLayer.get(i).backPropagate(actuals[i] - outputs[i]));
 			}
 
 			for(int i = 0; i < numHiddenUnits; i++){
@@ -516,17 +521,44 @@ class NeuralNetwork{
 		return idx;
 	}
 
+	// Return the accuracy of the test
 	public double test(List<List<Double>> examples){
+		return test(examples, false);
+	}
+
+	// Return the accuracy of the test, print out results if debug is True
+	public double test(List<List<Double>> examples, Boolean debug){
 		double numCorrect = 0;
 
 		for(List<Double> example : examples){
 			double label = example.get(0);
-			if(predict(example.subList(1, example.size())) == label){
+			double output = predict(example.subList(1, example.size()));
+			
+			if(output == label){
 				numCorrect++;
+			}
+
+			if(debug){
+				System.out.println(output + " : " + label);
 			}
 		}
 
 		return numCorrect / examples.size();
+	}
+
+	// Print out the weights of each perceptron
+	public void debugWeights(){
+		System.out.println("HiddenLayer:");
+
+		for(Perceptron p : hiddenLayer){
+			System.out.println(Arrays.toString(p.getWeights()));
+		}
+
+		System.out.println("OutputLayer:");
+
+		for(Perceptron p : outputLayer){
+			System.out.println(Arrays.toString(p.getWeights()));
+		}
 	}
 }
 
@@ -547,13 +579,16 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 10, proteinData.di.numLabels);
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 30, proteinData.di.numLabels);
 
-		System.out.println(nn.test(proteinData.trainList.examples));
-		for(int i = 0; i < 200; i++){
+		// proteinData.di.print();
+		System.out.println(nn.test(proteinData.testList.examples));
+
+		for(int i = 0; i < 20; i++){
 			nn.train(proteinData.trainList.examples);
 		}
-		System.out.println(nn.test(proteinData.trainList.examples));
+		System.out.println(nn.test(proteinData.testList.examples));
+
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
 
