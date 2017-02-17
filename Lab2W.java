@@ -461,7 +461,16 @@ class Perceptron{
 	}
 
 	public double[] getWeights(){
-		return weights;
+		return weights.clone();
+	}
+	
+	public void setWeights(double[] weights){
+		if(weights.length != numIn + 1){
+			System.err.println("Wrong number of weights, setWeights fail");
+			System.exit(-1);
+		}
+
+		this.weights = weights;
 	}
 }
 
@@ -484,7 +493,7 @@ class NeuralNetwork{
 		hiddenLayer = new ArrayList<Perceptron>();
 
 		for(int i = 0; i < numHiddenUnits; i++){
-			hiddenLayer.add(new Perceptron(numInputs, "rec", learningRate));
+			hiddenLayer.add(new Perceptron(numInputs, "sig", learningRate));
 			hiddenLayerOutputs.add(0.0);
 		}
 
@@ -575,6 +584,52 @@ class NeuralNetwork{
 		return numCorrect / examples.size();
 	}
 
+	// Assumes that there's 2 layers only, the hidden layer and the output layer
+	// This function returns a list that stores all the weights of the neural network
+	public List<List<double[]>> exportWeights(){
+		List<List<double[]>> layers = new ArrayList<List<double[]>>();
+		List<double[]> hiddenWeights = new ArrayList<double[]>();
+		List<double[]> outputWeights = new ArrayList<double[]>();
+
+		for(Perceptron p : hiddenLayer){
+			hiddenWeights.add(p.getWeights());
+		}
+
+		for(Perceptron p : outputLayer){
+			outputWeights.add(p.getWeights());
+		}
+
+		layers.add(hiddenWeights);
+		layers.add(outputWeights);
+
+		return layers;
+	}
+
+	// Assumes that there's 2 layers only, the hidden layer and the output layer
+	// Update the weights of this neural network with layers
+	public void importWeights(List<List<double[]>> layers){
+		List<double[]> hiddenWeights = layers.get(0);
+		List<double[]> outputWeights = layers.get(1);
+
+		if(numHiddenUnits != hiddenWeights.size()){
+			System.err.println("Wrong number of hidden Perceptron when importing weight for the hidden layer");
+			System.exit(-1);
+		}
+
+		if(numClass != outputWeights.size()){
+			System.err.println("Wrong number of output Perceptron when importing weight for the output layer");
+			System.exit(-1);
+		}
+
+		for(int i = 0; i < numHiddenUnits; i++){
+			hiddenLayer.get(i).setWeights(hiddenWeights.get(i));
+		}
+
+		for(int i = 0; i < numClass; i++){
+			outputLayer.get(i).setWeights(outputWeights.get(i));
+		}
+	}
+
 	// Print out the weights of each perceptron
 	public void debugWeights(){
 		System.out.println("HiddenLayer:");
@@ -600,6 +655,57 @@ public class Lab2W{
 		}
 	}
 
+	public static void epochExperiment(int epoch, int epochUnit, ProteinData proteinData, int numHiddenUnits, double learningRate){
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, numHiddenUnits, proteinData.di.numLabels, learningRate);
+
+		double result = 0;
+		double newResult = nn.test(proteinData.tuneList.examples);
+		List<List<double[]>> optimalWeights = nn.exportWeights();
+
+		for(int i = 0; i < epoch; i++){
+			for(int j = 0; j < epochUnit; j++){
+				nn.train(proteinData.trainList.examples);
+			}
+
+			System.out.println(i + ": " + nn.test(proteinData.testList.examples));
+		}
+	}
+
+	public static void bestAccuracy(ProteinData proteinData){
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 3, proteinData.di.numLabels, 0.05);
+
+		double result = 0;
+		double newResult = nn.test(proteinData.tuneList.examples);
+		List<List<double[]>> optimalWeights = nn.exportWeights();
+		int patience = 50;
+		int epoch = 1;
+
+		// Early stopping
+		// Loop stops after (i = patience) times if the result does not improve
+		for(int i = 0; i < patience; i++){
+			for(int j = 0; j < epoch; j++){
+				nn.train(proteinData.trainList.examples);
+			}
+
+			newResult = nn.test(proteinData.tuneList.examples);
+			if(newResult > result){
+				// If new result is better, reset
+				result = newResult;
+				i = -1;
+
+				// Keep track of the optimal weights
+				optimalWeights = nn.exportWeights();
+			}
+
+			System.out.println(i + ": " + newResult);
+		}
+
+		// Final results
+		nn.importWeights(optimalWeights);
+		System.out.println("Tune: " + nn.test(proteinData.tuneList.examples));
+		System.out.println("Final: " + nn.test(proteinData.testList.examples));
+	}
+
 	public static void main(String[] args){
 		checkArgs(args);
 
@@ -608,58 +714,12 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 50, proteinData.di.numLabels, 0.001);
-
-		// proteinData.di.print();
-		double result = 0;
-		int epoch = 10;
-		while(result < 0.6){
-			result = nn.test(proteinData.tuneList.examples);
-			System.out.println(result);
-			for(int i = 0; i < epoch; i++){
-				nn.train(proteinData.trainList.examples);
-			}
-		}
-
-		System.out.println("Final: " + nn.test(proteinData.testList.examples));
-
-		// Load examples
-		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
-
-		// Initialize perceptrons
-		// Perceptron perceptron = new Perceptron(dataInfo, 0.1);
-
-		// Train y=numPerceptrons and pick the best one
-		// Use early stopping for each perceptron
-		// Early stopping rule: Stop if accuracy does not increase after x=patience epoch
-		// int numPerceptrons = 50;
-		// int patience = 30;
-
-		// for(int i = 0; i < numPerceptrons; i++){
-		// 	Perceptron perceptronNew = new Perceptron(dataInfo, 0.1);
-
-		// 	double acc = perceptronNew.test(tuneEx);
-		// 	double weights[] = perceptronNew.getWeights();
-
-		// 	for(int j = 0; j < patience; j++){
-		// 		perceptronNew.train(trainEx);
-		// 		double newAcc = perceptronNew.test(tuneEx);
-
-		// 		if(newAcc > acc){
-		// 			acc = newAcc;
-		// 			j = 0;
-		// 			weights = perceptronNew.getWeights();
-		// 		}
-
-		// 		perceptronNew.setWeights(weights);
-		// 	}
-
-		// 	if(perceptronNew.test(tuneEx) > perceptron.test(tuneEx)){
-		// 		perceptron = perceptronNew;
-		// 	}
-		// }
-
-		// Print out result and overall accuracy
-		// System.out.printf("Overall Accuracy: %.2f\n", perceptron.testWithOutput(testEx) * 100);
+		// Epoch experiment, for plotting accuracy versus epoch graph
+		// epochExperiment(1000, 2, proteinData, 3, 0.05);
+		bestAccuracy(proteinData);
 	}
 }
+
+// hidden:sig, output:sig, 100 hidden units, 0.001 learningRate, 10 patience, 5 epoch, Results: tune: 0.6299, final: 0.6107
+// Best and fast, sig, sig, (2, 3, 4), (0.01, 0.005), 20, 5, Results: tune: 0.64, final: 0.62
+// If ETA is very small, there's like an initial barrier that it has to break before the accuracy can increase
