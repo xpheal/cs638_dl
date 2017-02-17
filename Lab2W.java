@@ -455,7 +455,7 @@ class NeuralNetwork{
 		hiddenLayer = new ArrayList<Perceptron>();
 
 		for(int i = 0; i < numHiddenUnits; i++){
-			hiddenLayer.add(new Perceptron(numInputs, "sig", 0.001));
+			hiddenLayer.add(new Perceptron(numInputs, "sig", 0.005));
 			hiddenLayerOutputs.add(0.0);
 		}
 
@@ -463,7 +463,7 @@ class NeuralNetwork{
 		outputs = new double[numClass];
 
 		for(int i = 0; i < numClass; i++){
-			outputLayer.add(new Perceptron(numHiddenUnits, "sig", 0.001));
+			outputLayer.add(new Perceptron(numHiddenUnits, "sig", 0.005));
 		}
 	}
 
@@ -582,7 +582,11 @@ public class Lab2W{
 		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 200, proteinData.di.numLabels);
 
 		// proteinData.di.print();
-		while(nn.test(proteinData.tuneList.examples) < 0.6){
+		double result = 0;
+
+		while(result < 0.9){
+			result = nn.test(proteinData.trainList.examples);
+			System.out.println(result);
 			for(int i = 0; i < 10; i++){
 				nn.train(proteinData.trainList.examples);
 			}
