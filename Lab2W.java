@@ -608,12 +608,12 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 34, proteinData.di.numLabels, 0.01);
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 50, proteinData.di.numLabels, 0.01);
 
 		// proteinData.di.print();
 		double result = 0;
 		int epoch = 5;
-		while(result < 0.62){
+		while(result < 0.61){
 			result = nn.test(proteinData.tuneList.examples);
 			System.out.println(result);
 			for(int i = 0; i < epoch; i++){
