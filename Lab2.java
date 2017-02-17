@@ -518,21 +518,24 @@ class NeuralNetwork{
 		}
 	}
 
+	// Train the neural network using examples
 	public void train(List<List<Double>> examples){
 		for(List<Double> example : examples){
-			// p.backPropagate(-(example.get(0) - predict(example.subList(1, example.size()))));
+
 			double label = example.get(0);
 			predict(example.subList(1, example.size())); // Feedforward
 
 			double actuals[] = new double[numClass];
 			actuals[(int)label] = 1;
 
-			List<double[]> deltas = new ArrayList<double[]>();
+			List<double[]> deltas = new ArrayList<double[]>(); // To store the derivative of the error
 
+			// Backpropagation of the output layer
 			for(int i = 0; i < numClass; i++){
 				deltas.add(outputLayer.get(i).backPropagate(outputs[i] - actuals[i]));
 			}
 
+			// Backpropagation of the hidden layer 
 			for(int i = 0; i < numHiddenUnits; i++){
 				double delta = 0;
 
@@ -545,13 +548,16 @@ class NeuralNetwork{
 		}
 	}
 
+	// Predict the output of the neural network for the given inputs
 	public double predict(List<Double> inputs){
 		List<Double> hiddenLayerOutputs = new ArrayList<Double>();
 
+		// Forward pass for the hidden layer
 		for(int i = 0; i < numHiddenUnits; i++){
 			hiddenLayerOutputs.add(i, hiddenLayer.get(i).feedForward(inputs));
 		}
 
+		// Forward pass for the output layer
 		for(int i = 0; i < numClass; i++){
 			outputs[i] = outputLayer.get(i).feedForward(hiddenLayerOutputs);
 		}
@@ -592,7 +598,7 @@ class NeuralNetwork{
 			}
 
 			if(debug){
-				System.out.println(output + " : " + label);
+				System.out.println(output);
 			}
 		}
 
@@ -661,6 +667,7 @@ class NeuralNetwork{
 	}
 }
 
+// Main class
 public class Lab2{
 	// Check for correct program arguments
 	public static void checkArgs(String[] args){
@@ -670,6 +677,11 @@ public class Lab2{
 		}
 	}
 
+	// Experiment with epoch, trainSet, tuneSet and testSet, to plot graphs
+	// Epoch is the number of epoch to run
+	// EpochUnit is the step of each epoch (train epochUnit times for each epoch loop)
+	// numHiddenUnits = number of hidden units for the hidden layer
+	// learningRate = learningRate for all the perceptrons
 	public static void epochExperiment(int epoch, int epochUnit, ProteinData proteinData, int numHiddenUnits, double learningRate){
 		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, numHiddenUnits, proteinData.di.numLabels, learningRate);
 
@@ -686,6 +698,7 @@ public class Lab2{
 		}
 	}
 
+	// Best accuracy that we can obtain for the proteinData
 	public static void bestAccuracy(ProteinData proteinData){
 		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 3, proteinData.di.numLabels, 0.05);
 
@@ -698,6 +711,7 @@ public class Lab2{
 		// Early stopping
 		// Loop stops after (i = patience) times if the result does not improve
 		for(int i = 0; i < patience; i++){
+			// Train the data epoch times for each patience loop, normally set to 1
 			for(int j = 0; j < epoch; j++){
 				nn.train(proteinData.trainList.examples);
 			}
@@ -712,13 +726,13 @@ public class Lab2{
 				optimalWeights = nn.exportWeights();
 			}
 
-			System.out.println(i + ": " + newResult);
+			// System.out.println(i + ": " + newResult);
 		}
 
 		// Final results
 		nn.importWeights(optimalWeights);
-		System.out.println("Tune: " + nn.test(proteinData.tuneList.examples));
-		System.out.println("Final: " + nn.test(proteinData.testList.examples));
+		// System.out.println("Tune: " + nn.test(proteinData.tuneList.examples));
+		System.out.println("Final: " + nn.test(proteinData.testList.examples, true));
 	}
 
 	public static void main(String[] args){
@@ -731,7 +745,7 @@ public class Lab2{
 
 		// Epoch experiment, for plotting accuracy versus epoch graph
 		// epochExperiment(1000, 2, proteinData, 3, 0.05);
-		// bestAccuracy(proteinData);
+		bestAccuracy(proteinData);
 	}
 }
 
