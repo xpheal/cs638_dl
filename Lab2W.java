@@ -405,11 +405,11 @@ class Perceptron{
 		// Update all weights
 		for(int i = 0; i < numIn; i++){
 			deltaList[i] = newDelta * weights[i];
-			weights[i] -= newDelta * inputs.get(i);
+			weights[i] -= learningRate * newDelta * inputs.get(i);
 		}
 
 		// Update bias
-		weights[numIn] -= newDelta;
+		weights[numIn] -= learningRate * newDelta;
 
 		return deltaList;
 	}
@@ -549,11 +549,11 @@ public class Lab2W{
 
 		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 10, proteinData.di.numLabels);
 
-		System.out.println(nn.test(proteinData.tuneList.examples));
-		for(int i = 0; i < 10; i++){
+		System.out.println(nn.test(proteinData.trainList.examples));
+		for(int i = 0; i < 200; i++){
 			nn.train(proteinData.trainList.examples);
 		}
-		System.out.println(nn.test(proteinData.testList.examples));
+		System.out.println(nn.test(proteinData.trainList.examples));
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
 
