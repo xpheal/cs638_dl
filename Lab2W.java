@@ -38,7 +38,7 @@ class DataInfo{
 	}
 
 	// Return the index of the value for the feature[featureIndex], return -1 if not found
-	public double getFeatureValueIndex(String value){
+	public int getFeatureValueIndex(String value){
 		return featureValues.indexOf(value);
 	}
 
@@ -57,14 +57,9 @@ class DataInfo{
 	}
 
 	public String indexToFeature(int x){
-		if(x < 0 || x > numFeatures){
+		if(x < 0 || x > numFeatures - 1){
 			System.err.println("Label index out of bounds.");
 			System.exit(-1);
-		}
-
-		if(x == numFeatures){
-			// Return padding as "NULL"
-			return "NULL";
 		}
 
 		return featureValues.get(x);
@@ -152,29 +147,38 @@ class ExampleList{
 	List<List<Double>> examples;
 	int numExamples;
 	int windowSize;
+	int exampleSize;
 
 	public ExampleList(){
 		examples = new ArrayList<List<Double>>();
 		numExamples = 0;
 		windowSize = 1;
+		exampleSize = 1;
 	}
 
 	// Set examples using sliding window of size windowSize
 	public void setExamples(List<List<String>> features, List<List<String>> labels, int windowSize, DataInfo di){
 		// Add examples
+		List<List<Double>> encoding = generateEncoding(di.numFeatures);
+
 		for(List<String> protein : features){
 			List<Double> window = new ArrayList<Double>();
 
 			// The first window
 			for(int i = 0; i < windowSize; i++){
-				window.add(di.getFeatureValueIndex(protein.get(i)));
+				window.addAll(encoding.get(di.getFeatureValueIndex(protein.get(i))));
 			}
 			examples.add(new ArrayList<Double>(window));
 
 			// The rest of the windows
 			for(int i = 1; i < protein.size() - windowSize + 1; i++){
-				window.remove(0);
-				window.add(di.getFeatureValueIndex(protein.get(i + windowSize - 1)));
+				// Remove the previous window slot
+				for(int j = 0; j < di.numFeatures; j++){
+					window.remove(0);
+				}
+				// Add the next window slot
+				window.addAll(encoding.get(di.getFeatureValueIndex(protein.get(i + windowSize - 1))));
+				// Add window to example
 				examples.add(new ArrayList<Double>(window));
 			}
 		}
@@ -190,6 +194,28 @@ class ExampleList{
 
 		numExamples = examples.size();
 		this.windowSize = windowSize;
+		this.exampleSize = windowSize * (di.numFeatures);
+	}
+
+	// Generate list of values for one-hot encoding
+	public List<List<Double>> generateEncoding(int encodingSize){
+		List<List<Double>> list = new ArrayList<List<Double>>();
+
+		List<Double> x = new ArrayList<Double>();
+		for(int i = 1; i < encodingSize; i++){
+			x.add(0.0);
+		}
+		x.add(1.0);
+
+		list.add(new ArrayList<Double>(x));
+
+		for(int i = 1; i < encodingSize; i++){
+			x.remove(0);
+			x.add(0.0);
+			list.add(new ArrayList<Double>(x));			
+		}
+
+		return list;
 	}
 
 	// Print out all examples
@@ -373,6 +399,8 @@ class Perceptron{
 
 		if(inputs.size() != numIn){
 			System.err.println("Wrong number of inputs for this perceptron!");
+			System.err.println("Size of input is: " + inputs.size());
+			System.err.println("The size it should be is: " + numIn);
 			System.exit(-1);
 		}
 
@@ -448,14 +476,15 @@ class NeuralNetwork{
 	// numInputs = number of inputs into the neural network
 	// numHiddenUnits = number of Perceptrons in the hidden layer
 	// numClass = number of classes to classify or number of distinct label values
-	public NeuralNetwork(int numInputs, int numHiddenUnits, int numClass){
+	// learningRate = learning rate of all the perceptrons, aka ETA
+	public NeuralNetwork(int numInputs, int numHiddenUnits, int numClass, double learningRate){
 		this.numHiddenUnits = numHiddenUnits;
 		this.numClass = numClass;
 		hiddenLayerOutputs = new ArrayList<Double>();
 		hiddenLayer = new ArrayList<Perceptron>();
 
 		for(int i = 0; i < numHiddenUnits; i++){
-			hiddenLayer.add(new Perceptron(numInputs, "sig", 0.005));
+			hiddenLayer.add(new Perceptron(numInputs, "rec", learningRate));
 			hiddenLayerOutputs.add(0.0);
 		}
 
@@ -463,7 +492,7 @@ class NeuralNetwork{
 		outputs = new double[numClass];
 
 		for(int i = 0; i < numClass; i++){
-			outputLayer.add(new Perceptron(numHiddenUnits, "sig", 0.005));
+			outputLayer.add(new Perceptron(numHiddenUnits, "sig", learningRate));
 		}
 	}
 
@@ -579,20 +608,20 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 200, proteinData.di.numLabels);
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 34, proteinData.di.numLabels, 0.01);
 
 		// proteinData.di.print();
 		double result = 0;
-
-		while(result < 0.9){
-			result = nn.test(proteinData.trainList.examples);
+		int epoch = 5;
+		while(result < 0.62){
+			result = nn.test(proteinData.tuneList.examples);
 			System.out.println(result);
-			for(int i = 0; i < 10; i++){
+			for(int i = 0; i < epoch; i++){
 				nn.train(proteinData.trainList.examples);
 			}
 		}
 
-		System.out.println(nn.test(proteinData.testList.examples));
+		System.out.println("Final: " + nn.test(proteinData.testList.examples));
 
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
