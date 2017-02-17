@@ -270,9 +270,12 @@ class ProteinData{
 		List<Integer> testIdx = new ArrayList<Integer>();
 
 		// Base on slides
-		for(int i = 0; i < proteins.size(); i++){
-			trainIdx.add(i);
-		}
+		trainIdx.add(0);
+		trainIdx.add(1);
+		trainIdx.add(2);
+		// for(int i = 0; i < proteins.size(); i++){
+		// 	trainIdx.add(i);
+		// }
 
 		int j = 4;
 		while(j < proteins.size()){
@@ -479,7 +482,7 @@ class NeuralNetwork{
 			List<double[]> deltas = new ArrayList<double[]>();
 
 			for(int i = 0; i < numClass; i++){
-				deltas.add(outputLayer.get(i).backPropagate(actuals[i] - outputs[i]));
+				deltas.add(outputLayer.get(i).backPropagate(outputs[i] - actuals[i]));
 			}
 
 			for(int i = 0; i < numHiddenUnits; i++){
@@ -579,15 +582,15 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 30, proteinData.di.numLabels);
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 17, proteinData.di.numLabels);
 
 		// proteinData.di.print();
-		System.out.println(nn.test(proteinData.testList.examples));
+		System.out.println(nn.test(proteinData.trainList.examples));
 
-		for(int i = 0; i < 20; i++){
+		for(int i = 0; i < 100; i++){
 			nn.train(proteinData.trainList.examples);
 		}
-		System.out.println(nn.test(proteinData.testList.examples));
+		System.out.println(nn.test(proteinData.trainList.examples, true));
 
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
