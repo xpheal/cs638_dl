@@ -341,11 +341,14 @@ class ProteinData{
 class Perceptron{
 	String actFunc;
 	int numIn;
+	List<Double> inputs;
 	double weights[];
+	double learningRate;
+	double doutdnet;
 
 	// actFunc = activation Function of the perceptron, can be either "rec" for rectified linear or "sig" for sigmoidal
 	// numIn = number of input weights
-	public Perceptron(int numIn, String actFunc){
+	public Perceptron(int numIn, String actFunc, double learningRate){
 		if(!actFunc.equals("rec") && !actFunc.equals("sig")){
 			System.err.println("Invalid activation function parameter");
 			System.exit(-1);
@@ -353,6 +356,10 @@ class Perceptron{
 
 		this.actFunc = actFunc;
 		this.numIn = numIn;
+		this.learningRate = learningRate;
+		this.doutdnet = 0;
+		this.inputs = null;
+
 		weights = new double[numIn + 1]; // +1 for bias
 
 		// Initialize weights
@@ -361,25 +368,25 @@ class Perceptron{
 		}
 	}
 
-	public double feedForward(List<Integer> inputs){
+	public double feedForward(List<Double> inputs){
 		if(inputs.size() != numIn){
 			System.err.println("Wrong number of inputs for this perceptron!");
 			System.exit(-1);
 		}
 
-		double total = 0;
+		double net = 0;
 
 		for(int i = 0; i < numIn; i++){
-			total += inputs.get(i) * weights[i];
+			net += inputs.get(i) * weights[i];
 		}
 
-		total += weights[numIn]; // bias
+		net += weights[numIn]; // bias
 
 		switch(actFunc){
 			case "rec":
-				return recL(total);
+				return recL(net);
 			case "sig":
-				return sigM(total);
+				return sigM(net);
 			default:
 				System.err.println("Error, shouldn't reach this line of code");
 				System.exit(-1);
@@ -387,18 +394,39 @@ class Perceptron{
 		}
 	}
 
-	public void backPropagate(double error){
+	// Delta equals to (dError/dout)
+	// Returns newDelta = (dError/dout * dout/dnet) for backpropagation
+	public double backPropagate(double delta){
+		newDelta = delta * doutdnet;
 
+		// Update all weights
+		for(int i = 0; i < numIn; i++){
+			weights[i] -= newDelta * inputs.get(i);
+		}
+
+		// Update bias
+		weights[numIn] -= newDelta;
+
+		return newDelta;
 	}
 	
 	private double sigM(double x){
-		return 1 / (1 + Math.exp(-x));
+		double out = 1 / (1 + Math.exp(-x));
+		doutdnet = out * (1 - out);
+		return out;
 	}
 
 	private double recL(double x){
-		return Math.max(0, x);
+		if(x >= 0){
+			doutdnet = 1;
+			return x;
+		}
+		else{
+			doutdnet = 0;
+			return 0;
+		}
 	}
-}	
+}
 
 public class Lab2W{
 	// Check for correct program arguments
