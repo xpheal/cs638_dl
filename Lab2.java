@@ -6,9 +6,9 @@ import java.util.*;
 class DataInfo{
 	// This case assumes that there is only one feature and one label
 	int numFeatures; // Number of values that the feature can take
-	int numLabels;
-	List<String> featureValues;
-	List<String> labelValues;
+	int numLabels; // Number of values for the label
+	List<String> featureValues; // List to store distinct features
+	List<String> labelValues; // List to store distinct labels
 
 	public DataInfo(){
 		this(0, 0, null, null);
@@ -18,6 +18,7 @@ class DataInfo{
 		set(numFeatures, numLabels, featureValues, labelValues);
 	}
 
+	// Initialize class
 	public void set(int numFeatures, int numLabels, List<String> featureValues, List<String> labelValues){
 		this.numFeatures = numFeatures;
 		this.numLabels = numLabels;
@@ -38,7 +39,7 @@ class DataInfo{
 	}
 
 	// Return the index of the value for the feature[featureIndex], return -1 if not found
-	public double getFeatureValueIndex(String value){
+	public int getFeatureValueIndex(String value){
 		return featureValues.indexOf(value);
 	}
 
@@ -47,6 +48,7 @@ class DataInfo{
 		return labelValues.indexOf(label);
 	}
 
+	// Return the label value for the given index, x
 	public String indexToLabel(int x){
 		if(x < 0 || x > numLabels - 1){
 			System.err.println("Label index out of bounds.");
@@ -56,15 +58,11 @@ class DataInfo{
 		return labelValues.get(x);
 	}
 
+	// Return the feature value for the given index, x
 	public String indexToFeature(int x){
-		if(x < 0 || x > numFeatures){
+		if(x < 0 || x > numFeatures - 1){
 			System.err.println("Label index out of bounds.");
 			System.exit(-1);
-		}
-
-		if(x == numFeatures){
-			// Return padding as "NULL"
-			return "NULL";
 		}
 
 		return featureValues.get(x);
@@ -152,29 +150,38 @@ class ExampleList{
 	List<List<Double>> examples;
 	int numExamples;
 	int windowSize;
+	int exampleSize;
 
 	public ExampleList(){
 		examples = new ArrayList<List<Double>>();
 		numExamples = 0;
 		windowSize = 1;
+		exampleSize = 1;
 	}
 
 	// Set examples using sliding window of size windowSize
 	public void setExamples(List<List<String>> features, List<List<String>> labels, int windowSize, DataInfo di){
 		// Add examples
+		List<List<Double>> encoding = generateEncoding(di.numFeatures);
+
 		for(List<String> protein : features){
 			List<Double> window = new ArrayList<Double>();
 
 			// The first window
 			for(int i = 0; i < windowSize; i++){
-				window.add(di.getFeatureValueIndex(protein.get(i)));
+				window.addAll(encoding.get(di.getFeatureValueIndex(protein.get(i))));
 			}
 			examples.add(new ArrayList<Double>(window));
 
 			// The rest of the windows
 			for(int i = 1; i < protein.size() - windowSize + 1; i++){
-				window.remove(0);
-				window.add(di.getFeatureValueIndex(protein.get(i + windowSize - 1)));
+				// Remove the previous window slot
+				for(int j = 0; j < di.numFeatures; j++){
+					window.remove(0);
+				}
+				// Add the next window slot
+				window.addAll(encoding.get(di.getFeatureValueIndex(protein.get(i + windowSize - 1))));
+				// Add window to example
 				examples.add(new ArrayList<Double>(window));
 			}
 		}
@@ -190,6 +197,28 @@ class ExampleList{
 
 		numExamples = examples.size();
 		this.windowSize = windowSize;
+		this.exampleSize = windowSize * (di.numFeatures);
+	}
+
+	// Generate list of values for one-hot encoding
+	public List<List<Double>> generateEncoding(int encodingSize){
+		List<List<Double>> list = new ArrayList<List<Double>>();
+
+		List<Double> x = new ArrayList<Double>();
+		for(int i = 1; i < encodingSize; i++){
+			x.add(0.0);
+		}
+		x.add(1.0);
+
+		list.add(new ArrayList<Double>(x));
+
+		for(int i = 1; i < encodingSize; i++){
+			x.remove(0);
+			x.add(0.0);
+			list.add(new ArrayList<Double>(x));			
+		}
+
+		return list;
 	}
 
 	// Print out all examples
@@ -203,21 +232,24 @@ class ExampleList{
 	}
 }
 
+// Stores the data of all the proteins strands
 class ProteinData{
 	private List<List<String>> proteins;
 	private List<List<String>> proteinTypes;
 	DataInfo di;
-	ExampleList trainList;
-	ExampleList tuneList;
+	ExampleList trainList; // Tuning list
+	ExampleList tuneList; // Train list
 	ExampleList testList;
 
+	// scn = scanner of the data file
 	public ProteinData(CommentScanner scn){
-		proteins = new ArrayList<List<String>>();
-		proteinTypes = new ArrayList<List<String>>();
+		proteins = new ArrayList<List<String>>(); // Protein Strands
+		proteinTypes = new ArrayList<List<String>>(); // Labels, helix, beta, coil
 		List<String> protein = new ArrayList<String>();
 		List<String> label = new ArrayList<String>();
 		Boolean reset = false;
 
+		// Parse the data file into protein strands, delimeters "<>", "<end>", "end"
 		while(scn.hasNext()){
 			String in = scn.next().trim().toLowerCase();
 
@@ -246,9 +278,10 @@ class ProteinData{
 		proteins.remove(0);
 		proteinTypes.remove(0);
 
+		// Add padding 
 		addPadding(proteins, 8);
 
-		// Set the feature index, 1 of N encoding
+		// Set the feature index, 1 hot encoding
 		setDataInfo();
 		setExample();
 	}
@@ -303,7 +336,7 @@ class ProteinData{
 		setExampleList(testList, testIdx);
 	}
 
-	// set the examplelist el to contain proteins of index in indexes
+	// Convert the protein strands of (index : indexes) into example and store them in (el)
 	public void setExampleList(ExampleList el, List<Integer> indexes){
 		List<List<String>> tempFeatureList = new ArrayList<List<String>>();
 		List<List<String>> tempLabelList = new ArrayList<List<String>>();
@@ -339,12 +372,12 @@ class ProteinData{
 
 // Single Perceptron
 class Perceptron{
-	String actFunc;
-	int numIn;
-	List<Double> inputs;
-	double weights[];
-	double learningRate;
-	double doutdnet;
+	String actFunc; // Activation function to use, valid param = "rec" and "sig"
+	int numIn; // number of input nodes
+	List<Double> inputs; // Store the inputs of the current pass of the perceptron, used in backpropagation
+	double weights[]; // weights of the perceptron
+	double learningRate; // learningRate of the perceptron (ETA)
+	double doutdnet; // Store the derivative of the activation function, used in backpropagation
 
 	// actFunc = activation Function of the perceptron, can be either "rec" for rectified linear or "sig" for sigmoidal
 	// numIn = number of input weights
@@ -368,11 +401,16 @@ class Perceptron{
 		}
 	}
 
+	// feedForward algorithm of the perceptron
+	// inputs are the input for the perceptron
+	// return the output of the perceptron
 	public double feedForward(List<Double> inputs){
 		this.inputs = inputs;
 
 		if(inputs.size() != numIn){
 			System.err.println("Wrong number of inputs for this perceptron!");
+			System.err.println("Size of input is: " + inputs.size());
+			System.err.println("The size it should be is: " + numIn);
 			System.exit(-1);
 		}
 
@@ -396,17 +434,18 @@ class Perceptron{
 		}
 	}
 
-	// Delta equals to (dError/dout)
+	// backpropagation algorithm for the perceptron
+	// delta equals to (dError/dout)
 	// Returns newDeltai = (dError/dout * dout/dnet) * wi for backpropagation
-	public double[] backPropagate(double delta,List<Double> inputs){
-		this.inputs = inputs;
+	public double[] backPropagate(double delta){
 		double newDelta = delta * doutdnet;
 		double deltaList[] = new double[numIn];
 
 		// Update all weights
 		for(int i = 0; i < numIn; i++){
 			deltaList[i] = newDelta * weights[i];
-			weights[i] -= learningRate * newDelta * inputs.get(i);
+			double ll = learningRate * newDelta * inputs.get(i);
+			weights[i] -= ll;
 		}
 
 		// Update bias
@@ -415,12 +454,14 @@ class Perceptron{
 		return deltaList;
 	}
 	
+	// Sigmoid function
 	private double sigM(double x){
 		double out = 1 / (1 + Math.exp(-x));
 		doutdnet = out * (1 - out);
 		return out;
 	}
 
+	// Rectified Linear function
 	private double recL(double x){
 		if(x >= 0){
 			doutdnet = 1;
@@ -431,35 +472,49 @@ class Perceptron{
 			return 0;
 		}
 	}
+
+	// Return a copy of weights of the perceptron
+	public double[] getWeights(){
+		return weights.clone();
+	}
+	
+	// Set the weights of the perceptron with param (weights)
+	public void setWeights(double[] weights){
+		if(weights.length != numIn + 1){
+			System.err.println("Wrong number of weights, setWeights fail");
+			System.exit(-1);
+		}
+
+		this.weights = weights;
+	}
 }
 
+// Neural Network that consists of a hidden layer and an output layer
 class NeuralNetwork{
-	int numHiddenUnits;
-	int numClass;
-	List<Perceptron> hiddenLayer;
-	List<Double> hiddenLayerOutputs;
+	int numHiddenUnits; // Number of nodes in the hidden layer
+	int numClass; // Number of nodes in the output layer
+	List<Perceptron> hiddenLayer; // Nodes of the hidden layer
 	List<Perceptron> outputLayer;
 	double outputs[];
 
 	// numInputs = number of inputs into the neural network
 	// numHiddenUnits = number of Perceptrons in the hidden layer
 	// numClass = number of classes to classify or number of distinct label values
-	public NeuralNetwork(int numInputs, int numHiddenUnits, int numClass){
+	// learningRate = learning rate of all the perceptrons, aka ETA
+	public NeuralNetwork(int numInputs, int numHiddenUnits, int numClass, double learningRate){
 		this.numHiddenUnits = numHiddenUnits;
 		this.numClass = numClass;
-		hiddenLayerOutputs = new ArrayList<Double>();
 		hiddenLayer = new ArrayList<Perceptron>();
 
 		for(int i = 0; i < numHiddenUnits; i++){
-			hiddenLayer.add(new Perceptron(numInputs, "rec", 0.01));
-			hiddenLayerOutputs.add(0.0);
+			hiddenLayer.add(new Perceptron(numInputs, "sig", learningRate));
 		}
 
 		outputLayer = new ArrayList<Perceptron>();
 		outputs = new double[numClass];
 
 		for(int i = 0; i < numClass; i++){
-			outputLayer.add(new Perceptron(numHiddenUnits, "sig", 0.01));
+			outputLayer.add(new Perceptron(numHiddenUnits, "sig", learningRate));
 		}
 	}
 
@@ -475,7 +530,7 @@ class NeuralNetwork{
 			List<double[]> deltas = new ArrayList<double[]>();
 
 			for(int i = 0; i < numClass; i++){
-				deltas.add(outputLayer.get(i).backPropagate((outputs[i] - actuals[i]),hiddenLayerOutputs));
+				deltas.add(outputLayer.get(i).backPropagate(outputs[i] - actuals[i]));
 			}
 
 			for(int i = 0; i < numHiddenUnits; i++){
@@ -485,14 +540,16 @@ class NeuralNetwork{
 					delta += deltas.get(j)[i];
 				}
 
-				hiddenLayer.get(i).backPropagate(delta,example.subList(1, example.size()));
+				hiddenLayer.get(i).backPropagate(delta);
 			}
 		}
 	}
 
 	public double predict(List<Double> inputs){
+		List<Double> hiddenLayerOutputs = new ArrayList<Double>();
+
 		for(int i = 0; i < numHiddenUnits; i++){
-			hiddenLayerOutputs.set(i, hiddenLayer.get(i).feedForward(inputs));
+			hiddenLayerOutputs.add(i, hiddenLayer.get(i).feedForward(inputs));
 		}
 
 		for(int i = 0; i < numClass; i++){
@@ -517,28 +574,151 @@ class NeuralNetwork{
 		return idx;
 	}
 
+	// Return the accuracy of the test
 	public double test(List<List<Double>> examples){
+		return test(examples, false);
+	}
+
+	// Return the accuracy of the test, print out results if debug is True
+	public double test(List<List<Double>> examples, Boolean debug){
 		double numCorrect = 0;
 
 		for(List<Double> example : examples){
 			double label = example.get(0);
-			System.out.println(predict(example.subList(1, example.size()))+"="+label);
-			if(predict(example.subList(1, example.size())) == label){
+			double output = predict(example.subList(1, example.size()));
+			
+			if(output == label){
 				numCorrect++;
+			}
+
+			if(debug){
+				System.out.println(output + " : " + label);
 			}
 		}
 
 		return numCorrect / examples.size();
 	}
+
+	// Assumes that there's 2 layers only, the hidden layer and the output layer
+	// This function returns a list that stores all the weights of the neural network
+	public List<List<double[]>> exportWeights(){
+		List<List<double[]>> layers = new ArrayList<List<double[]>>();
+		List<double[]> hiddenWeights = new ArrayList<double[]>();
+		List<double[]> outputWeights = new ArrayList<double[]>();
+
+		for(Perceptron p : hiddenLayer){
+			hiddenWeights.add(p.getWeights());
+		}
+
+		for(Perceptron p : outputLayer){
+			outputWeights.add(p.getWeights());
+		}
+
+		layers.add(hiddenWeights);
+		layers.add(outputWeights);
+
+		return layers;
+	}
+
+	// Assumes that there's 2 layers only, the hidden layer and the output layer
+	// Update the weights of this neural network with layers
+	public void importWeights(List<List<double[]>> layers){
+		List<double[]> hiddenWeights = layers.get(0);
+		List<double[]> outputWeights = layers.get(1);
+
+		if(numHiddenUnits != hiddenWeights.size()){
+			System.err.println("Wrong number of hidden Perceptron when importing weight for the hidden layer");
+			System.exit(-1);
+		}
+
+		if(numClass != outputWeights.size()){
+			System.err.println("Wrong number of output Perceptron when importing weight for the output layer");
+			System.exit(-1);
+		}
+
+		for(int i = 0; i < numHiddenUnits; i++){
+			hiddenLayer.get(i).setWeights(hiddenWeights.get(i));
+		}
+
+		for(int i = 0; i < numClass; i++){
+			outputLayer.get(i).setWeights(outputWeights.get(i));
+		}
+	}
+
+	// Print out the weights of each perceptron
+	public void debugWeights(){
+		System.out.println("HiddenLayer:");
+
+		for(Perceptron p : hiddenLayer){
+			System.out.println(Arrays.toString(p.getWeights()));
+		}
+
+		System.out.println("OutputLayer:");
+
+		for(Perceptron p : outputLayer){
+			System.out.println(Arrays.toString(p.getWeights()));
+		}
+	}
 }
 
-public class Lab2W{
+public class Lab2{
 	// Check for correct program arguments
 	public static void checkArgs(String[] args){
 		if(args.length != 1){
-			System.err.println("Usage: Lab2W <fileNameOfData>");
+			System.err.println("Usage: Lab2 <fileNameOfData>");
 			System.exit(-1);
 		}
+	}
+
+	public static void epochExperiment(int epoch, int epochUnit, ProteinData proteinData, int numHiddenUnits, double learningRate){
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, numHiddenUnits, proteinData.di.numLabels, learningRate);
+
+		double result = 0;
+		double newResult = nn.test(proteinData.tuneList.examples);
+		List<List<double[]>> optimalWeights = nn.exportWeights();
+
+		for(int i = 0; i < epoch; i++){
+			for(int j = 0; j < epochUnit; j++){
+				nn.train(proteinData.trainList.examples);
+			}
+
+			System.out.println(i + ": " + nn.test(proteinData.testList.examples));
+		}
+	}
+
+	public static void bestAccuracy(ProteinData proteinData){
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 3, proteinData.di.numLabels, 0.05);
+
+		double result = 0;
+		double newResult = nn.test(proteinData.tuneList.examples);
+		List<List<double[]>> optimalWeights = nn.exportWeights();
+		int patience = 20;
+		int epoch = 1;
+
+		// Early stopping
+		// Loop stops after (i = patience) times if the result does not improve
+		for(int i = 0; i < patience; i++){
+			for(int j = 0; j < epoch; j++){
+				nn.train(proteinData.trainList.examples);
+			}
+
+			newResult = nn.test(proteinData.tuneList.examples);
+			if(newResult > result){
+				// If new result is better, reset
+				result = newResult;
+				i = -1;
+
+				// Keep track of the optimal weights
+				optimalWeights = nn.exportWeights();
+			}
+
+			System.out.println(i + ": " + newResult);
+		}
+
+		// Final results
+		nn.importWeights(optimalWeights);
+		System.out.println("Tune: " + nn.test(proteinData.tuneList.examples));
+		System.out.println("Final: " + nn.test(proteinData.testList.examples));
 	}
 
 	public static void main(String[] args){
@@ -549,50 +729,12 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize, 20, proteinData.di.numLabels);
-
-		for(int i = 0; i < 20; i++){
-			nn.train(proteinData.trainList.examples);
-		}
-		System.out.println(nn.test(proteinData.tuneList.examples));
-		
-		// Load examples
-		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
-
-		// Initialize perceptrons
-		// Perceptron perceptron = new Perceptron(dataInfo, 0.1);
-
-		// Train y=numPerceptrons and pick the best one
-		// Use early stopping for each perceptron
-		// Early stopping rule: Stop if accuracy does not increase after x=patience epoch
-		// int numPerceptrons = 50;
-		// int patience = 30;
-
-		// for(int i = 0; i < numPerceptrons; i++){
-		// 	Perceptron perceptronNew = new Perceptron(dataInfo, 0.1);
-
-		// 	double acc = perceptronNew.test(tuneEx);
-		// 	double weights[] = perceptronNew.getWeights();
-
-		// 	for(int j = 0; j < patience; j++){
-		// 		perceptronNew.train(trainEx);
-		// 		double newAcc = perceptronNew.test(tuneEx);
-
-		// 		if(newAcc > acc){
-		// 			acc = newAcc;
-		// 			j = 0;
-		// 			weights = perceptronNew.getWeights();
-		// 		}
-
-		// 		perceptronNew.setWeights(weights);
-		// 	}
-
-		// 	if(perceptronNew.test(tuneEx) > perceptron.test(tuneEx)){
-		// 		perceptron = perceptronNew;
-		// 	}
-		// }
-
-		// Print out result and overall accuracy
-		// System.out.printf("Overall Accuracy: %.2f\n", perceptron.testWithOutput(testEx) * 100);
+		// Epoch experiment, for plotting accuracy versus epoch graph
+		// epochExperiment(1000, 2, proteinData, 3, 0.05);
+		// bestAccuracy(proteinData);
 	}
 }
+
+// hidden:sig, output:sig, 100 hidden units, 0.001 learningRate, 10 patience, 5 epoch, Results: tune: 0.6299, final: 0.6107
+// Best and fast, sig, sig, (2, 3, 4), (0.01, 0.005), 20, 5, Results: tune: 0.64, final: 0.62
+// If ETA is very small, there's like an initial barrier that it has to break before the accuracy can increase
