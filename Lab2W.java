@@ -38,12 +38,12 @@ class DataInfo{
 	}
 
 	// Return the index of the value for the feature[featureIndex], return -1 if not found
-	public int getFeatureValueIndex(String value){
+	public double getFeatureValueIndex(String value){
 		return featureValues.indexOf(value);
 	}
 
 	// Return the label index, return -1 if not found
-	public int getLabelValueIndex(String label){
+	public double getLabelValueIndex(String label){
 		return labelValues.indexOf(label);
 	}
 
@@ -149,12 +149,12 @@ class CommentScanner{
 // Data structure to load and store examples
 class ExampleList{
 	// First item is the label while the rest are features
-	List<List<Integer>> examples;
+	List<List<Double>> examples;
 	int numExamples;
 	int windowSize;
 
 	public ExampleList(){
-		examples = new ArrayList<List<Integer>>();
+		examples = new ArrayList<List<Double>>();
 		numExamples = 0;
 		windowSize = 1;
 	}
@@ -163,19 +163,19 @@ class ExampleList{
 	public void setExamples(List<List<String>> features, List<List<String>> labels, int windowSize, DataInfo di){
 		// Add examples
 		for(List<String> protein : features){
-			List<Integer> window = new ArrayList<Integer>();
+			List<Double> window = new ArrayList<Double>();
 
 			// The first window
 			for(int i = 0; i < windowSize; i++){
 				window.add(di.getFeatureValueIndex(protein.get(i)));
 			}
-			examples.add(new ArrayList<Integer>(window));
+			examples.add(new ArrayList<Double>(window));
 
 			// The rest of the windows
 			for(int i = 1; i < protein.size() - windowSize + 1; i++){
 				window.remove(0);
 				window.add(di.getFeatureValueIndex(protein.get(i + windowSize - 1)));
-				examples.add(new ArrayList<Integer>(window));
+				examples.add(new ArrayList<Double>(window));
 			}
 		}
 
@@ -195,7 +195,7 @@ class ExampleList{
 	// Print out all examples
 	public void print(){
 		int i = 0;
-		for(List<Integer> x : examples){
+		for(List<Double> x : examples){
 			System.out.print("Example " + i + ": ");
 			i++;
 			System.out.println(x.toString());
@@ -397,8 +397,8 @@ class Perceptron{
 	// Delta equals to (dError/dout)
 	// Returns newDeltai = (dError/dout * dout/dnet) * wi for backpropagation
 	public double[] backPropagate(double delta){
-		newDelta = delta * doutdnet;
-		double deltaList = new double[numIn];
+		double newDelta = delta * doutdnet;
+		double deltaList[] = new double[numIn];
 
 		// Update all weights
 		for(int i = 0; i < numIn; i++){
@@ -430,6 +430,24 @@ class Perceptron{
 	}
 }
 
+class NeuralNetwork{
+	Perceptron p;
+
+	public NeuralNetwork(int numInputs){
+		p = new Perceptron(numInputs, "rec", 0.01);
+	}
+
+	public void train(List<List<Double>> examples){
+		for(List<Double> example : examples){
+			System.out.println(predict(example));
+		}
+	}
+
+	public double predict(List<Double> inputs){
+		return p.feedForward(inputs);
+	}
+}
+
 public class Lab2W{
 	// Check for correct program arguments
 	public static void checkArgs(String[] args){
@@ -447,13 +465,9 @@ public class Lab2W{
 
 		ProteinData proteinData = new ProteinData(inputScn);
 
-		Perceptron y = new Perceptron(proteinData.trainList.windowSize, "rec");
-		
-		for(List<Integer> x : proteinData.trainList.examples){
-			x.remove(0);
-			System.out.println(y.feedForward(x));
-		}
-		
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.windowSize);
+
+		nn.train(proteinData.trainList.examples);		
 		// Load examples
 		// ExampleList trainEx = new ExampleList(inputScn, dataInfo);
 
