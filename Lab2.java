@@ -494,7 +494,7 @@ class NeuralNetwork{
 	int numHiddenUnits; // Number of nodes in the hidden layer
 	int numClass; // Number of nodes in the output layer
 	List<Perceptron> hiddenLayer; // Nodes of the hidden layer
-	List<Perceptron> outputLayer;
+	List<Perceptron> outputLayer; // Nodes of the output layer
 	double outputs[];
 
 	// numInputs = number of inputs into the neural network
@@ -586,23 +586,57 @@ class NeuralNetwork{
 	}
 
 	// Return the accuracy of the test, print out results if debug is True
+	// Hardcode this function for the protein data structure, will print out accuracy of predicted helix and beta coil
+	// [e-Beta, h-Helix, _-Coil]
 	public double test(List<List<Double>> examples, Boolean debug){
-		double numCorrect = 0;
+		double numHelix = 0;
+		double numBeta = 0;
+		double numCoil = 0;
+		double totalHelix = 0;
+		double totalBeta = 0;
+		double totalCoil = 0;
 
 		for(List<Double> example : examples){
 			double label = example.get(0);
 			double output = predict(example.subList(1, example.size()));
 			
-			if(output == label){
-				numCorrect++;
-			}
-
-			if(debug){
-				System.out.println(output);
+			switch((int)label){
+				case 0: // Beta case
+					totalBeta++;
+					if(output == label){
+						numBeta++;
+					}
+					break;
+				case 1: // Helix case
+					totalHelix++;
+					if(output == label){
+						numHelix++;
+					}
+					break;
+				case 2:
+					totalCoil++;
+					if(output == label){
+						numCoil++;
+					}
+					break;
+				default:
+					// Code shouldn't reach here
+					System.err.println("Error, shouldn't reach this line of code");
+					System.exit(-1);
+					break;
 			}
 		}
 
-		return numCorrect / examples.size();
+		double acc = (numBeta + numHelix + numCoil) / (totalBeta + totalHelix + totalCoil);
+
+		if(debug){
+			System.out.println("Accuracy of Beta: " + (numBeta / totalBeta));
+			System.out.println("Accuracy of Helix: " + (numHelix / totalHelix));
+			System.out.println("Accuracy of Coil: " + (numCoil / totalCoil));
+			System.out.println("Overall accuracy: " + acc);
+		}
+		
+		return acc;
 	}
 
 	// Assumes that there's 2 layers only, the hidden layer and the output layer
@@ -732,7 +766,7 @@ public class Lab2{
 		// Final results
 		nn.importWeights(optimalWeights);
 		// System.out.println("Tune: " + nn.test(proteinData.tuneList.examples));
-		System.out.println("Final: " + nn.test(proteinData.testList.examples, true));
+		nn.test(proteinData.testList.examples, true);
 	}
 
 	public static void main(String[] args){
