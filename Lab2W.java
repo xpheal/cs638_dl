@@ -395,19 +395,21 @@ class Perceptron{
 	}
 
 	// Delta equals to (dError/dout)
-	// Returns newDelta = (dError/dout * dout/dnet) for backpropagation
-	public double backPropagate(double delta){
+	// Returns newDeltai = (dError/dout * dout/dnet) * wi for backpropagation
+	public double[] backPropagate(double delta){
 		newDelta = delta * doutdnet;
+		double deltaList = new double[numIn];
 
 		// Update all weights
 		for(int i = 0; i < numIn; i++){
+			deltaList[i] = newDelta * weights[i];
 			weights[i] -= newDelta * inputs.get(i);
 		}
 
 		// Update bias
 		weights[numIn] -= newDelta;
 
-		return newDelta;
+		return deltaList;
 	}
 	
 	private double sigM(double x){
