@@ -728,7 +728,12 @@ public class Lab2{
 				nn.train(proteinData.trainList.examples);
 			}
 
-			System.out.println(i + ": " + nn.test(proteinData.testList.examples));
+			System.out.println("TRAIN");
+			nn.test(proteinData.trainList.examples, true);
+			System.out.println("TUNE");
+			nn.test(proteinData.tuneList.examples, true);
+			System.out.println("TEST");
+			nn.test(proteinData.testList.examples, true);
 		}
 	}
 
@@ -778,8 +783,8 @@ public class Lab2{
 		ProteinData proteinData = new ProteinData(inputScn);
 
 		// Epoch experiment, for plotting accuracy versus epoch graph
-		// epochExperiment(1000, 2, proteinData, 3, 0.05);
-		bestAccuracy(proteinData);
+		epochExperiment(3000, 1, proteinData, 3, 0.025);
+		// bestAccuracy(proteinData);
 	}
 }
 
