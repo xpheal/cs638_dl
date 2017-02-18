@@ -496,14 +496,16 @@ class NeuralNetwork{
 	List<Perceptron> hiddenLayer; // Nodes of the hidden layer
 	List<Perceptron> outputLayer; // Nodes of the output layer
 	double outputs[];
+	DataInfo di;
 
 	// numInputs = number of inputs into the neural network
 	// numHiddenUnits = number of Perceptrons in the hidden layer
 	// numClass = number of classes to classify or number of distinct label values
 	// learningRate = learning rate of all the perceptrons, aka ETA
-	public NeuralNetwork(int numInputs, int numHiddenUnits, int numClass, double learningRate){
+	public NeuralNetwork(int numInputs, int numHiddenUnits, int numClass, double learningRate, DataInfo di){
 		this.numHiddenUnits = numHiddenUnits;
 		this.numClass = numClass;
+		this.di = di;
 		hiddenLayer = new ArrayList<Perceptron>();
 
 		for(int i = 0; i < numHiddenUnits; i++){
@@ -599,6 +601,10 @@ class NeuralNetwork{
 		for(List<Double> example : examples){
 			double label = example.get(0);
 			double output = predict(example.subList(1, example.size()));
+
+			if(debug){
+				System.out.println(di.indexToLabel((int)output));
+			}
 			
 			switch((int)label){
 				case 0: // Beta case
@@ -717,7 +723,7 @@ public class Lab2{
 	// numHiddenUnits = number of hidden units for the hidden layer
 	// learningRate = learningRate for all the perceptrons
 	public static void epochExperiment(int epoch, int epochUnit, ProteinData proteinData, int numHiddenUnits, double learningRate){
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, numHiddenUnits, proteinData.di.numLabels, learningRate);
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, numHiddenUnits, proteinData.di.numLabels, learningRate, proteinData.di);
 
 		double result = 0;
 		double newResult = nn.test(proteinData.tuneList.examples);
@@ -739,12 +745,12 @@ public class Lab2{
 
 	// Best accuracy that we can obtain for the proteinData
 	public static void bestAccuracy(ProteinData proteinData){
-		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 3, proteinData.di.numLabels, 0.05);
+		NeuralNetwork nn = new NeuralNetwork(proteinData.trainList.exampleSize, 2, proteinData.di.numLabels, 0.05, proteinData.di);
 
 		double result = 0;
 		double newResult = nn.test(proteinData.tuneList.examples);
 		List<List<double[]>> optimalWeights = nn.exportWeights();
-		int patience = 20;
+		int patience = 25;
 		int epoch = 1;
 
 		// Early stopping
@@ -783,11 +789,7 @@ public class Lab2{
 		ProteinData proteinData = new ProteinData(inputScn);
 
 		// Epoch experiment, for plotting accuracy versus epoch graph
-		epochExperiment(3000, 1, proteinData, 3, 0.025);
-		// bestAccuracy(proteinData);
+		// epochExperiment(3000, 1, proteinData, 3, 0.025);
+		bestAccuracy(proteinData);	
 	}
 }
-
-// hidden:sig, output:sig, 100 hidden units, 0.001 learningRate, 10 patience, 5 epoch, Results: tune: 0.6299, final: 0.6107
-// Best and fast, sig, sig, (2, 3, 4), (0.01, 0.005), 20, 5, Results: tune: 0.64, final: 0.62
-// If ETA is very small, there's like an initial barrier that it has to break before the accuracy can increase
