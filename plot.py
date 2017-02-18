@@ -40,7 +40,10 @@ plt.title('Overall Accuracy versus Epoch(time)')
 plt.ylabel('Accuracy (%)')
 plt.xlabel('Epoch / Time')
 
-plt.plot(e, train[3], 'red')
-plt.plot(e, tune[3], 'blue')
-plt.plot(e, test[3], 'green')
+t1, = plt.plot(e, train[3], 'red', label='Training Set')
+t2, = plt.plot(e, tune[3], 'blue', label='Tuning Set')
+t3, = plt.plot(e, test[3], 'green', label='Testing Set')
+
+plt.legend(handles=[t1, t2, t3])
+
 plt.show()
