@@ -334,7 +334,7 @@ public class OneHiddenLayerClassifier{
 	}
 
 	public void train(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, int patience, int epochStep, Boolean debug){
-		// long  overallStart = System.currentTimeMillis(), start = overallStart;
+		long  overallStart = System.currentTimeMillis(), start = overallStart;
 		double bestAcc = test(tuneFeatureVectors, debug);
 		List<List<double[]>> optimalWeights = nn.exportWeights();
 		int epoch = 0;
@@ -365,8 +365,8 @@ public class OneHiddenLayerClassifier{
 				optimalWeights = nn.exportWeights();
 			}
 
-			// System.out.println("Done with Epoch # " + Lab3.comma(epoch) + ".  Took " + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
-        	// start = System.currentTimeMillis();
+			System.out.println("Done with Epoch # " + Lab3.comma(epoch) + ".  Took " + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
+        	start = System.currentTimeMillis();
 
 			epoch ++;
 		}
