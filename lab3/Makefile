@@ -3,3 +3,6 @@ all:
 
 test:
 	java Lab3
+
+clean:
+	rm -rf *.class

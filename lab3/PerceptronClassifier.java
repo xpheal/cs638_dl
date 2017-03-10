@@ -2,7 +2,7 @@ import java.util.Random;
 import java.util.Vector;
 
 // Single Perceptron
-class Perceptron{
+class SPerceptron{
 	String actFunc; // Activation function to use, valid param = "rec" and "sig"
 	int numIn; // number of input nodes
 	Vector<Double> inputs; // Store the inputs of the current pass of the perceptron, used in backpropagation
@@ -12,7 +12,7 @@ class Perceptron{
 
 	// actFunc = activation Function of the perceptron, can be either "rec" for rectified linear or "sig" for sigmoidal
 	// numIn = number of input weights
-	public Perceptron(int numIn, String actFunc, double learningRate){
+	public SPerceptron(int numIn, String actFunc, double learningRate){
 		if(!actFunc.equals("rec") && !actFunc.equals("sig")){
 			System.err.println("Invalid activation function parameter");
 			System.exit(-1);
@@ -113,16 +113,16 @@ public class PerceptronClassifier{
 	int labelSize;
 	double learningRate;
 	double totalError;
-	Vector<Perceptron> perceptrons;
+	Vector<SPerceptron> perceptrons;
 
 	public PerceptronClassifier(int inputVectorSize, int labelSize, double learningRate){
 		this.inputVectorSize = inputVectorSize; // inputVectorSize includes the bias
 		this.labelSize = labelSize;
 		this.learningRate = learningRate;
-		perceptrons = new Vector<Perceptron>(labelSize);
+		perceptrons = new Vector<SPerceptron>(labelSize);
 
 		for(int i = 0; i < labelSize; i++){
-			perceptrons.add(new Perceptron(inputVectorSize - 1, "sig", learningRate));
+			perceptrons.add(new SPerceptron(inputVectorSize - 1, "sig", learningRate));
 		}
 	}
 

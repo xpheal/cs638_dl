@@ -25,20 +25,20 @@ import javax.imageio.ImageIO;
 
 public class Lab3 {
     
-	private static int     imageSize = 8; // Images are imageSize x imageSize.  The provided data is 128x128, but this can be resized by setting this value (or passing in an argument).  
+	private static int     imageSize = 32; // Images are imageSize x imageSize.  The provided data is 128x128, but this can be resized by setting this value (or passing in an argument).  
 	                                       // You might want to resize to 8x8, 16x16, 32x32, or 64x64; this can reduce your network size and speed up debugging runs.
 	                                       // ALL IMAGES IN A TRAINING RUN SHOULD BE THE *SAME* SIZE.
 	private static enum    Category { airplanes, butterfly, flower, grand_piano, starfish, watch };  // We'll hardwire these in, but more robust code would not do so.
 	
-	private static final Boolean    useRGB = false; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
+	private static final Boolean    useRGB = true; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
 	private static       int unitsPerPixel = (useRGB ? 4 : 1); // If using RGB, use red+blue+green+grey.  Otherwise just use the grey value.
 			
-	private static String    modelToUse = "perceptrons"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
+	private static String    modelToUse = "oneLayer"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
 	private static int       inputVectorSize;         // The provided code uses a 1D vector of input features.  You might want to create a 2D version for your Deep ANN code.  
 	                                                  // Or use the get2DfeatureValue() 'accessor function' that maps 2D coordinates into the 1D vector.  
 	                                                  // The last element in this vector holds the 'teacher-provided' label of the example.
 
-	private static double eta       =    0.1, fractionOfTrainingToUse = 1.00, dropoutRate = 0.50; // To turn off drop out, set dropoutRate to 0.0 (or a neg number).
+	private static double eta       =    0.01, fractionOfTrainingToUse = 1.00, dropoutRate = 0.50; // To turn off drop out, set dropoutRate to 0.0 (or a neg number).
 	private static int    maxEpochs = 1000; // Feel free to set to a different value.
 
 	public static void main(String[] args) {
@@ -292,7 +292,7 @@ public class Lab3 {
     	}
     }
     
-    public static Random randomInstance = new Random(638 * 838);  // Change the 638 * 838 to get a different sequence of random numbers.
+    public static Random randomInstance = new Random();  // Change the 638 * 838 to get a different sequence of random numbers.
     
     /**
      * @return The next random double.
@@ -341,20 +341,22 @@ public class Lab3 {
 		
 		reportPerceptronConfig();
 
-		// Set up classifier
-		PerceptronClassifier classifier = new PerceptronClassifier(inputVectorSize, Category.values().length, eta * 0.1);
+		// Set up classifier (best eta = 0.01, patience = 300) grayscale 32x32
+		double eta = 0.01;
+		PerceptronClassifier classifier = new PerceptronClassifier(inputVectorSize, Category.values().length, eta);
 		int patience = 300;
 
-		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, 1, false);
+		System.out.printf("Using: ETA = %f, patience = %d, epochStep = %d\n", eta, patience, 1);
+		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, 1, true);
 
 		System.out.println("**************** FINAL RESULTS ****************");
-		System.out.println("Test Set result for perceptrons test:");
+		System.out.println("Test Set result for perceptrons:");
 		
 		return classifier.test(testFeatureVectors, true);
 	}
 	
 	private static void reportPerceptronConfig() {
-		System.out.println(  "***** PERCEPTRON: UseRGB = " + useRGB + ", imageSize = " + imageSize + "x" + imageSize + ", fraction of training examples used = " + truncate(fractionOfTrainingToUse, 2) + ", eta = " + truncate(eta * 0.1, 2) + ", dropout rate = " + truncate(dropoutRate, 2));
+		System.out.println(  "***** PERCEPTRON: UseRGB = " + useRGB + ", imageSize = " + imageSize + "x" + imageSize + ", fraction of training examples used = " + truncate(fractionOfTrainingToUse, 2) + ", eta = " + truncate(eta, 2) + ", dropout rate = " + truncate(dropoutRate, 2));
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////   ONE HIDDEN LAYER
@@ -362,7 +364,7 @@ public class Lab3 {
 	private static boolean debugOneLayer               = false;  // If set true, more things checked and/or printed (which does slow down the code).
 	private static int    numberOfHiddenUnits          = 250;
 	
-	private static int trainOneHU(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, Vector<Vector<Double>> testFeatureVectors) {
+	private static double trainOneHU(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, Vector<Vector<Double>> testFeatureVectors) {
 		// Set up training feature vectors
 		if (fractionOfTrainingToUse < 1.0) {  // Randomize list, then get the first N of them.
 			int numberToKeep = (int) (fractionOfTrainingToUse * trainFeatureVectors.size());
@@ -375,7 +377,22 @@ public class Lab3 {
 			trainFeatureVectors = trainFeatureVectors_temp;
 		}
 
-    	return 0;
+		reportOneLayerConfig();
+
+		// Set up classifier (best eta = 0.02, hu = 10, patience = 200) grayscale 32x32
+		// Using: ETA = 0.005000, numHiddenUnits = 50, patience = 50, epochStep = 1, Accuracy: 69.1011%, Average Error: 12.3770%
+		double eta = 0.001;
+		int numHiddenUnits = 150;
+		OneHiddenLayerClassifier classifier = new OneHiddenLayerClassifier(inputVectorSize, numHiddenUnits, Category.values().length, eta);
+
+		int patience = 200;
+		System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, 1);
+		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, 1, true);
+
+		System.out.println("**************** FINAL RESULTS ****************");
+		System.out.println("Test Set result for one hidden layer neural network:");
+		
+		return classifier.test(testFeatureVectors, true);
 	}
 	
 	private static void reportOneLayerConfig() {
