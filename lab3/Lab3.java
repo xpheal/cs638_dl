@@ -132,7 +132,7 @@ public class Lab3 {
 		throw new Error("Unknown category: " + name);		
 	}
 	
-	private static double getRandomWeight(int fanin, int fanout, boolean isaReLU) { // This is one, 'rule of thumb' for initializing weights.
+	public static double getRandomWeight(int fanin, int fanout, boolean isaReLU) { // This is one, 'rule of thumb' for initializing weights.
         double range = Math.max(10 * Double.MIN_VALUE,
                                 isaReLU ? 2.0        / Math.sqrt(fanin + fanout)    // From paper by Glorot & Bengio.  See http://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization
                                         : 4.0 * Math.sqrt(6.0 / (fanin + fanout))); // See http://stats.stackexchange.com/questions/47590/what-are-good-initial-weights-in-a-neural-network
@@ -148,8 +148,8 @@ public class Lab3 {
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
     
-	// Return the count of TESTSET errors for the chosen model.
-    private static int trainANN(Dataset trainset, Dataset tuneset, Dataset testset) {
+	// Return the accuracy of the testset for the choosen model
+    private static double trainANN(Dataset trainset, Dataset tuneset, Dataset testset) {
     	Instance sampleImage = trainset.getImages().get(0); // Assume there is at least one train image!
     	inputVectorSize = sampleImage.getWidth() * sampleImage.getHeight() * unitsPerPixel + 1; // The '-1' for the bias is not explicitly added to all examples (instead code should implicitly handle it).  The final 1 is for the CATEGORY.
     	
@@ -326,15 +326,8 @@ public class Lab3 {
     
     ///////////////////////////////////////////////////////////////////////////////////////////////  Write your own code below here.  Feel free to use or discard what is provided.
     	
-	private static int trainPerceptrons(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, Vector<Vector<Double>> testFeatureVectors) {
-		Vector<Vector<Double>> perceptrons = new Vector<Vector<Double>>(Category.values().length);  // One perceptron per category.
-
-		for (int i = 0; i < Category.values().length; i++) {
-			Vector<Double> perceptron = new Vector<Double>(inputVectorSize);  // Note: inputVectorSize includes the OUTPUT CATEGORY as the LAST element.  That element in the perceptron will be the BIAS.
-			perceptrons.add(perceptron);
-			for (int indexWgt = 0; indexWgt < inputVectorSize; indexWgt++) perceptron.add(getRandomWeight(inputVectorSize, 1, false)); // Initialize weights.
-		}
-
+	private static double trainPerceptrons(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, Vector<Vector<Double>> testFeatureVectors) {
+		// Set up training feature vectors
 		if (fractionOfTrainingToUse < 1.0) {  // Randomize list, then get the first N of them.
 			int numberToKeep = (int) (fractionOfTrainingToUse * trainFeatureVectors.size());
 			Vector<Vector<Double>> trainFeatureVectors_temp = new Vector<Vector<Double>>(numberToKeep);
@@ -346,25 +339,22 @@ public class Lab3 {
 			trainFeatureVectors = trainFeatureVectors_temp;
 		}
 		
-        int trainSetErrors = Integer.MAX_VALUE, tuneSetErrors = Integer.MAX_VALUE, best_tuneSetErrors = Integer.MAX_VALUE, testSetErrors = Integer.MAX_VALUE, best_epoch = -1, testSetErrorsAtBestTune = Integer.MAX_VALUE;
-        long  overallStart = System.currentTimeMillis(), start = overallStart;
-		
-		for (int epoch = 1; epoch <= maxEpochs /* && trainSetErrors > 0 */; epoch++) { // Might still want to train after trainset error = 0 since we want to get all predictions on the 'right side of zero' (whereas errors defined wrt HIGHEST output).
-			permute(trainFeatureVectors); // Note: this is an IN-PLACE permute, but that is OK.
+		reportPerceptronConfig();
 
-            // CODE NEEDED HERE!
-			
-	        // System.out.println("Done with Epoch # " + comma(epoch) + ".  Took " + convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
-	        // reportPerceptronConfig(); // Print out some info after epoch, so you can see what experiment is running in a given console.
-	        start = System.currentTimeMillis();
-		}
-    	System.out.println("\n***** Best tuneset errors = " + comma(best_tuneSetErrors) + " of " + comma(tuneFeatureVectors.size()) + " (" + truncate((100.0 *      best_tuneSetErrors) / tuneFeatureVectors.size(), 2) + "%) at epoch = " + comma(best_epoch) 
-    						+ " (testset errors = "    + comma(testSetErrorsAtBestTune) + " of " + comma(testFeatureVectors.size()) + ", " + truncate((100.0 * testSetErrorsAtBestTune) / testFeatureVectors.size(), 2) + "%).\n");
-    	return testSetErrorsAtBestTune;
+		// Set up classifier
+		PerceptronClassifier classifier = new PerceptronClassifier(inputVectorSize, Category.values().length, eta * 0.1);
+		int patience = 300;
+
+		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, 1, false);
+
+		System.out.println("**************** FINAL RESULTS ****************");
+		System.out.println("Test Set result for perceptrons test:");
+		
+		return classifier.test(testFeatureVectors, true);
 	}
 	
 	private static void reportPerceptronConfig() {
-		System.out.println(  "***** PERCEPTRON: UseRGB = " + useRGB + ", imageSize = " + imageSize + "x" + imageSize + ", fraction of training examples used = " + truncate(fractionOfTrainingToUse, 2) + ", eta = " + truncate(eta, 2) + ", dropout rate = " + truncate(dropoutRate, 2)	);
+		System.out.println(  "***** PERCEPTRON: UseRGB = " + useRGB + ", imageSize = " + imageSize + "x" + imageSize + ", fraction of training examples used = " + truncate(fractionOfTrainingToUse, 2) + ", eta = " + truncate(eta * 0.1, 2) + ", dropout rate = " + truncate(dropoutRate, 2));
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////   ONE HIDDEN LAYER
@@ -373,22 +363,19 @@ public class Lab3 {
 	private static int    numberOfHiddenUnits          = 250;
 	
 	private static int trainOneHU(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, Vector<Vector<Double>> testFeatureVectors) {
-	    long overallStart   = System.currentTimeMillis(), start = overallStart;
-        int  trainSetErrors = Integer.MAX_VALUE, tuneSetErrors = Integer.MAX_VALUE, best_tuneSetErrors = Integer.MAX_VALUE, testSetErrors = Integer.MAX_VALUE, best_epoch = -1, testSetErrorsAtBestTune = Integer.MAX_VALUE;
-        
-		for (int epoch = 1; epoch <= maxEpochs /* && trainSetErrors > 0 */; epoch++) { // Might still want to train after trainset error = 0 since we want to get all predictions on the 'right side of zero' (whereas errors defined wrt HIGHEST output).
-			permute(trainFeatureVectors); // Note: this is an IN-PLACE permute, but that is OK.
+		// Set up training feature vectors
+		if (fractionOfTrainingToUse < 1.0) {  // Randomize list, then get the first N of them.
+			int numberToKeep = (int) (fractionOfTrainingToUse * trainFeatureVectors.size());
+			Vector<Vector<Double>> trainFeatureVectors_temp = new Vector<Vector<Double>>(numberToKeep);
 
-            // CODE NEEDED HERE!
-			
-	        // System.out.println("Done with Epoch # " + comma(epoch) + ".  Took " + convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
-	        // reportOneLayerConfig(); // Print out some info after epoch, so you can see what experiment is running in a given console.
-	        start = System.currentTimeMillis();
+			permute(trainFeatureVectors); // Note: this is an IN-PLACE permute, but that is OK.
+			for (int i = 0; i <numberToKeep; i++) {
+				trainFeatureVectors_temp.add(trainFeatureVectors.get(i));
+			}
+			trainFeatureVectors = trainFeatureVectors_temp;
 		}
-		
-		System.out.println("\n***** Best tuneset errors = " + comma(best_tuneSetErrors) + " of " + comma(tuneFeatureVectors.size()) + " (" + truncate((100.0 *      best_tuneSetErrors) / tuneFeatureVectors.size(), 2) + "%) at epoch = " + comma(best_epoch) 
-		                    + " (testset errors = "    + comma(testSetErrorsAtBestTune) + " of " + comma(testFeatureVectors.size()) + ", " + truncate((100.0 * testSetErrorsAtBestTune) / testFeatureVectors.size(), 2) + "%).\n");
-    	return testSetErrorsAtBestTune;
+
+    	return 0;
 	}
 	
 	private static void reportOneLayerConfig() {
