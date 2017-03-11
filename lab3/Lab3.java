@@ -381,12 +381,12 @@ public class Lab3 {
 
 		// Set up classifier (best eta = 0.02, hu = 10, patience = 200) grayscale 32x32
 		// Using: ETA = 0.005000, numHiddenUnits = 50, patience = 50, epochStep = 1, Accuracy: 69.1011%, Average Error: 12.3770%
-		double eta = 0.0005;
+		double eta = 0.001;
 		int numHiddenUnits = 300;
 		OneHiddenLayerClassifier classifier = new OneHiddenLayerClassifier(inputVectorSize, numHiddenUnits, Category.values().length, eta);
 
 		int patience = 70;
-		int epochStep = 4;
+		int epochStep = 5;
 		System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, 1);
 		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
 
