@@ -385,9 +385,10 @@ public class Lab3 {
 		int numHiddenUnits = 300;
 		OneHiddenLayerClassifier classifier = new OneHiddenLayerClassifier(inputVectorSize, numHiddenUnits, Category.values().length, eta);
 
-		int patience = 300;
+		int patience = 70;
+		int epochStep = 4;
 		System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, 1);
-		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, 1, true);
+		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
 
 		System.out.println("**************** FINAL RESULTS ****************");
 		System.out.println("Test Set result for one hidden layer neural network:");
