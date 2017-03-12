@@ -339,7 +339,7 @@ public class Lab3 {
 			trainFeatureVectors = trainFeatureVectors_temp;
 		}
 		
-		reportPerceptronConfig();
+		// reportPerceptronConfig();
 
 		// Set up classifier (best eta = 0.01, patience = 300) grayscale 32x32
 		double eta = 0.01;
@@ -377,17 +377,15 @@ public class Lab3 {
 			trainFeatureVectors = trainFeatureVectors_temp;
 		}
 
-		reportOneLayerConfig();
+		// reportOneLayerConfig();
 
-		// Set up classifier (best eta = 0.02, hu = 10, patience = 200) grayscale 32x32
-		// Using: ETA = 0.005000, numHiddenUnits = 50, patience = 50, epochStep = 1, Accuracy: 69.1011%, Average Error: 12.3770%
-		double eta = 0.001;
-		int numHiddenUnits = 300;
+		double eta = 0.01;
+		int numHiddenUnits = 50;
 		OneHiddenLayerClassifier classifier = new OneHiddenLayerClassifier(inputVectorSize, numHiddenUnits, Category.values().length, eta);
 
-		int patience = 70;
-		int epochStep = 5;
-		System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, 1);
+		int patience = 40;
+		int epochStep = 1;
+		System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, epochStep);
 		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
 
 		System.out.println("**************** FINAL RESULTS ****************");

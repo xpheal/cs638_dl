@@ -1,0 +1,348 @@
+java Lab3
+The trainset contains 554 examples.  Took 355 milliseconds.
+The  testset contains 180 examples.  Took 57 milliseconds.
+The  tuneset contains 178 examples.  Took 52 milliseconds.
+
+The input vector size is 4,096.
+
+Converted 554 TRAIN examples to feature vectors. Took 699 milliseconds.
+Converted 180 TUNE  examples to feature vectors. Took 715 milliseconds.
+Converted 178 TEST  examples to feature vectors. Took 25 milliseconds.
+
+Time to start learning!
+Using: ETA = 0.010000, numHiddenUnits = 50, patience = 40, epochStep = 1
+Accuracy: 10.0000%
+Average Error: 47.9907%
+Epoch: 0
+~~~~Tuneset~~~~
+Accuracy: 10.0000%
+Average Error: 29.2804%
+Done with Epoch # 0.  Took 9 seconds (9 seconds overall).
+Epoch: 1
+~~~~Tuneset~~~~
+Accuracy: 10.0000%
+Average Error: 27.9202%
+Done with Epoch # 1.  Took 8 seconds (17 seconds overall).
+Epoch: 2
+~~~~Tuneset~~~~
+Accuracy: 10.0000%
+Average Error: 27.4602%
+Done with Epoch # 2.  Took 8 seconds (25 seconds overall).
+Epoch: 3
+~~~~Tuneset~~~~
+Accuracy: 10.0000%
+Average Error: 27.1235%
+Done with Epoch # 3.  Took 7 seconds (33 seconds overall).
+Epoch: 4
+~~~~Tuneset~~~~
+Accuracy: 10.0000%
+Average Error: 27.4719%
+Done with Epoch # 4.  Took 8 seconds (41 seconds overall).
+Epoch: 5
+~~~~Tuneset~~~~
+Accuracy: 10.0000%
+Average Error: 26.2686%
+Done with Epoch # 5.  Took 8 seconds (49 seconds overall).
+Epoch: 6
+~~~~Tuneset~~~~
+Accuracy: 10.0000%
+Average Error: 26.3822%
+Done with Epoch # 6.  Took 8 seconds (57 seconds overall).
+Epoch: 7
+~~~~Tuneset~~~~
+Accuracy: 60.5556%
+Average Error: 17.3061%
+Done with Epoch # 7.  Took 7 seconds (1 minutes and 4 seconds overall).
+Epoch: 8
+~~~~Tuneset~~~~
+Accuracy: 62.2222%
+Average Error: 16.3510%
+Done with Epoch # 8.  Took 7 seconds (1 minutes and 12 seconds overall).
+Epoch: 9
+~~~~Tuneset~~~~
+Accuracy: 59.4444%
+Average Error: 15.4737%
+Done with Epoch # 9.  Took 8 seconds (1 minutes and 19 seconds overall).
+Epoch: 10
+~~~~Tuneset~~~~
+Accuracy: 61.1111%
+Average Error: 15.3565%
+Done with Epoch # 10.  Took 8 seconds (1 minutes and 28 seconds overall).
+Epoch: 11
+~~~~Tuneset~~~~
+Accuracy: 62.2222%
+Average Error: 14.9070%
+Done with Epoch # 11.  Took 7 seconds (1 minutes and 35 seconds overall).
+Epoch: 12
+~~~~Tuneset~~~~
+Accuracy: 62.7778%
+Average Error: 14.9199%
+Done with Epoch # 12.  Took 7 seconds (1 minutes and 42 seconds overall).
+Epoch: 13
+~~~~Tuneset~~~~
+Accuracy: 60.5556%
+Average Error: 16.1928%
+Done with Epoch # 13.  Took 7 seconds (1 minutes and 50 seconds overall).
+Epoch: 14
+~~~~Tuneset~~~~
+Accuracy: 63.3333%
+Average Error: 14.6809%
+Done with Epoch # 14.  Took 8 seconds (1 minutes and 58 seconds overall).
+Epoch: 15
+~~~~Tuneset~~~~
+Accuracy: 64.4444%
+Average Error: 14.5291%
+Done with Epoch # 15.  Took 8 seconds (2 minutes and 5 seconds overall).
+Epoch: 16
+~~~~Tuneset~~~~
+Accuracy: 63.8889%
+Average Error: 13.4606%
+Done with Epoch # 16.  Took 8 seconds (2 minutes and 13 seconds overall).
+Epoch: 17
+~~~~Tuneset~~~~
+Accuracy: 69.4444%
+Average Error: 14.1827%
+Done with Epoch # 17.  Took 8 seconds (2 minutes and 21 seconds overall).
+Epoch: 18
+~~~~Tuneset~~~~
+Accuracy: 66.6667%
+Average Error: 14.4364%
+Done with Epoch # 18.  Took 8 seconds (2 minutes and 29 seconds overall).
+Epoch: 19
+~~~~Tuneset~~~~
+Accuracy: 65.5556%
+Average Error: 14.2415%
+Done with Epoch # 19.  Took 7 seconds (2 minutes and 37 seconds overall).
+Epoch: 20
+~~~~Tuneset~~~~
+Accuracy: 66.6667%
+Average Error: 13.8359%
+Done with Epoch # 20.  Took 7 seconds (2 minutes and 44 seconds overall).
+Epoch: 21
+~~~~Tuneset~~~~
+Accuracy: 65.5556%
+Average Error: 13.6994%
+Done with Epoch # 21.  Took 7 seconds (2 minutes and 52 seconds overall).
+Epoch: 22
+~~~~Tuneset~~~~
+Accuracy: 66.6667%
+Average Error: 13.4753%
+Done with Epoch # 22.  Took 7 seconds (2 minutes and 59 seconds overall).
+Epoch: 23
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 13.6249%
+Done with Epoch # 23.  Took 7 seconds (3 minutes and 6 seconds overall).
+Epoch: 24
+~~~~Tuneset~~~~
+Accuracy: 70.0000%
+Average Error: 13.1609%
+Done with Epoch # 24.  Took 7 seconds (3 minutes and 14 seconds overall).
+Epoch: 25
+~~~~Tuneset~~~~
+Accuracy: 69.4444%
+Average Error: 13.2059%
+Done with Epoch # 25.  Took 7 seconds (3 minutes and 21 seconds overall).
+Epoch: 26
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 13.3980%
+Done with Epoch # 26.  Took 7 seconds (3 minutes and 29 seconds overall).
+Epoch: 27
+~~~~Tuneset~~~~
+Accuracy: 68.8889%
+Average Error: 13.0471%
+Done with Epoch # 27.  Took 7 seconds (3 minutes and 36 seconds overall).
+Epoch: 28
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 13.0804%
+Done with Epoch # 28.  Took 7 seconds (3 minutes and 43 seconds overall).
+Epoch: 29
+~~~~Tuneset~~~~
+Accuracy: 66.1111%
+Average Error: 13.9777%
+Done with Epoch # 29.  Took 7 seconds (3 minutes and 51 seconds overall).
+Epoch: 30
+~~~~Tuneset~~~~
+Accuracy: 67.2222%
+Average Error: 12.8873%
+Done with Epoch # 30.  Took 7 seconds (3 minutes and 58 seconds overall).
+Epoch: 31
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 13.3227%
+Done with Epoch # 31.  Took 7 seconds (4 minutes and 6 seconds overall).
+Epoch: 32
+~~~~Tuneset~~~~
+Accuracy: 70.0000%
+Average Error: 12.5861%
+Done with Epoch # 32.  Took 7 seconds (4 minutes and 13 seconds overall).
+Epoch: 33
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 12.8390%
+Done with Epoch # 33.  Took 7 seconds (4 minutes and 21 seconds overall).
+Epoch: 34
+~~~~Tuneset~~~~
+Accuracy: 66.6667%
+Average Error: 13.5379%
+Done with Epoch # 34.  Took 7 seconds (4 minutes and 28 seconds overall).
+Epoch: 35
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 12.4032%
+Done with Epoch # 35.  Took 7 seconds (4 minutes and 35 seconds overall).
+Epoch: 36
+~~~~Tuneset~~~~
+Accuracy: 68.8889%
+Average Error: 12.2811%
+Done with Epoch # 36.  Took 7 seconds (4 minutes and 43 seconds overall).
+Epoch: 37
+~~~~Tuneset~~~~
+Accuracy: 67.2222%
+Average Error: 12.0806%
+Done with Epoch # 37.  Took 7 seconds (4 minutes and 50 seconds overall).
+Epoch: 38
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 12.3523%
+Done with Epoch # 38.  Took 7 seconds (4 minutes and 57 seconds overall).
+Epoch: 39
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 12.3768%
+Done with Epoch # 39.  Took 7 seconds (5 minutes and 5 seconds overall).
+Epoch: 40
+~~~~Tuneset~~~~
+Accuracy: 64.4444%
+Average Error: 12.0761%
+Done with Epoch # 40.  Took 7 seconds (5 minutes and 12 seconds overall).
+Epoch: 41
+~~~~Tuneset~~~~
+Accuracy: 65.5556%
+Average Error: 11.9183%
+Done with Epoch # 41.  Took 7 seconds (5 minutes and 20 seconds overall).
+Epoch: 42
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 12.8079%
+Done with Epoch # 42.  Took 7 seconds (5 minutes and 27 seconds overall).
+Epoch: 43
+~~~~Tuneset~~~~
+Accuracy: 65.0000%
+Average Error: 14.3481%
+Done with Epoch # 43.  Took 7 seconds (5 minutes and 34 seconds overall).
+Epoch: 44
+~~~~Tuneset~~~~
+Accuracy: 66.6667%
+Average Error: 12.2191%
+Done with Epoch # 44.  Took 7 seconds (5 minutes and 42 seconds overall).
+Epoch: 45
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 12.1738%
+Done with Epoch # 45.  Took 7 seconds (5 minutes and 49 seconds overall).
+Epoch: 46
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 11.7720%
+Done with Epoch # 46.  Took 7 seconds (5 minutes and 57 seconds overall).
+Epoch: 47
+~~~~Tuneset~~~~
+Accuracy: 68.8889%
+Average Error: 12.4021%
+Done with Epoch # 47.  Took 7 seconds (6 minutes and 4 seconds overall).
+Epoch: 48
+~~~~Tuneset~~~~
+Accuracy: 70.0000%
+Average Error: 12.0000%
+Done with Epoch # 48.  Took 7 seconds (6 minutes and 11 seconds overall).
+Epoch: 49
+~~~~Tuneset~~~~
+Accuracy: 70.0000%
+Average Error: 12.5481%
+Done with Epoch # 49.  Took 7 seconds (6 minutes and 19 seconds overall).
+Epoch: 50
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 12.2692%
+Done with Epoch # 50.  Took 7 seconds (6 minutes and 26 seconds overall).
+Epoch: 51
+~~~~Tuneset~~~~
+Accuracy: 67.2222%
+Average Error: 12.2590%
+Done with Epoch # 51.  Took 7 seconds (6 minutes and 34 seconds overall).
+Epoch: 52
+~~~~Tuneset~~~~
+Accuracy: 66.1111%
+Average Error: 12.5679%
+Done with Epoch # 52.  Took 7 seconds (6 minutes and 41 seconds overall).
+Epoch: 53
+~~~~Tuneset~~~~
+Accuracy: 66.1111%
+Average Error: 13.5303%
+Done with Epoch # 53.  Took 7 seconds (6 minutes and 48 seconds overall).
+Epoch: 54
+~~~~Tuneset~~~~
+Accuracy: 68.3333%
+Average Error: 12.1645%
+Done with Epoch # 54.  Took 7 seconds (6 minutes and 56 seconds overall).
+Epoch: 55
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 12.2420%
+Done with Epoch # 55.  Took 7 seconds (7 minutes and 3 seconds overall).
+Epoch: 56
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 12.1602%
+Done with Epoch # 56.  Took 7 seconds (7 minutes and 11 seconds overall).
+Epoch: 57
+~~~~Tuneset~~~~
+Accuracy: 70.0000%
+Average Error: 12.5486%
+Done with Epoch # 57.  Took 7 seconds (7 minutes and 18 seconds overall).
+Epoch: 58
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 12.0575%
+Done with Epoch # 58.  Took 7 seconds (7 minutes and 25 seconds overall).
+Epoch: 59
+~~~~Tuneset~~~~
+Accuracy: 66.6667%
+Average Error: 12.0123%
+Done with Epoch # 59.  Took 7 seconds (7 minutes and 33 seconds overall).
+Epoch: 60
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 11.9732%
+Done with Epoch # 60.  Took 7 seconds (7 minutes and 40 seconds overall).
+Epoch: 61
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 11.9466%
+Done with Epoch # 61.  Took 7 seconds (7 minutes and 47 seconds overall).
+Epoch: 62
+~~~~Tuneset~~~~
+Accuracy: 67.7778%
+Average Error: 12.0656%
+Done with Epoch # 62.  Took 7 seconds (7 minutes and 55 seconds overall).
+Epoch: 63
+~~~~Tuneset~~~~
+Accuracy: 67.2222%
+Average Error: 11.6843%
+Done with Epoch # 63.  Took 7 seconds (8 minutes and 2 seconds overall).
+Epoch: 64
+~~~~Tuneset~~~~
+Accuracy: 68.8889%
+Average Error: 12.0886%
+Done with Epoch # 64.  Took 7 seconds (8 minutes and 10 seconds overall).
+
+Best Tuning Set Accuracy: 70.0000% at Epoch: 24
+**************** FINAL RESULTS ****************
+Test Set result for one hidden layer neural network:
+Accuracy: 71.9101%
+Average Error: 12.6511%
+
+Took 8 minutes and 12 seconds to train.

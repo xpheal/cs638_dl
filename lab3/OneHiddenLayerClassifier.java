@@ -173,12 +173,12 @@ class NeuralNetwork{
 		}
 	}
 
-	public double predict(Vector<Double> inputs){
+	public int predict(Vector<Double> inputs){
 		return predict(inputs, null);
 	}
 
 	// Predict the output of the neural network for the given inputs
-	public double predict(Vector<Double> inputs, double[] actuals){
+	public int predict(Vector<Double> inputs, double[] actuals){
 		Vector<Double> hiddenLayerOutputs = new Vector<Double>();
 
 		// Forward pass for the hidden layer
@@ -194,12 +194,12 @@ class NeuralNetwork{
 		return classify(outputs, actuals);
 	}
 
-	public double classify(double[] outputs){
+	public int classify(double[] outputs){
 		return classify(outputs, null);
 	}
 
 	// Assumes that output is of at least length 2, binary classification
-	public double classify(double[] outputs, double[] actuals){
+	public int classify(double[] outputs, double[] actuals){
 		int idx = 0;
 		double value = outputs[0];
 
@@ -227,31 +227,73 @@ class NeuralNetwork{
 		int numCorrect = 0;
 		totalError = 0;
 
+		// For calculating confusion matrix
+		int givenLabel[] = new int[examples.size()];
+		int outputLabel[] = new int[examples.size()];
+		int k = 0;
+
 		for(Vector<Double> example : examples){
-			double label = example.lastElement();
+			int label = example.lastElement().intValue();
+			
 
 			double actuals[] = new double[numClass];
-			actuals[(int)label] = 1;
+			actuals[label] = 1;
 			
-			double output = predict(example, actuals);
+			int output = predict(example, actuals);
 
-			// if(debug){
-				// System.out.println(di.indexToLabel((int)output));
-			// }
-			
-			if(output == label){
-				numCorrect ++;
+			if(debug){
+				givenLabel[k] = label;
+				outputLabel[k] = output;
+				k ++;
 			}
+			else{
+				if(output == label){
+					numCorrect ++;
+				}
+			}
+		}
+
+		if(debug){
+			numCorrect = confusionMatrix(givenLabel, outputLabel);
 		}
 
 		double acc = numCorrect / (double)examples.size();
 		double error = (totalError / numClass) / examples.size();
 
 		if(debug){
-			System.out.printf("Accuracy: %.4f%%\nAverage Error: %.4f%%\n", acc * 100, error * 100);
+			System.out.printf("Accuracy: %.4f%%\nMean Squared Error: %.4f%%\n", acc * 100, error * 100);
 		}
 		
 		return acc;
+	}
+
+	// Print out the confusion matrix and return the number of correctly predicted labels
+	// Length of x and y should be the same
+	public int confusionMatrix(int actual[], int predicted[]){
+		int correct = 0;
+		int matrix[][] = new int[numClass][numClass];
+		String sep = "";
+
+		for(int i = 0; i < actual.length; i++){
+			matrix[actual[i]][predicted[i]] ++;
+		}
+
+		for(int i = 0; i < numClass; i++){
+			correct += matrix[i][i];
+			sep += "------";
+		}
+		
+		System.out.println("---------------- Confusion Matrix ----------------");
+		System.out.println(sep);
+		for(int i = 0; i < numClass; i++){
+			System.out.print("|");
+			for(int j = 0; j < numClass; j++){
+				System.out.printf("%4d |", matrix[i][j]);
+			}
+			System.out.println("\n" + sep);
+		}
+
+		return correct;
 	}
 
 	// Assumes that there's 2 layers only, the hidden layer and the output layer
@@ -351,8 +393,7 @@ public class OneHiddenLayerClassifier{
 				nn.train(trainFeatureVectors);
 			}
 
-			System.out.println("~~~~Trainset~~~~");
-			test(trainFeatureVectors, debug);
+			// Get tune set accuracy
 			System.out.println("~~~~Tuneset~~~~");
 			double acc = test(tuneFeatureVectors, debug);
 			
