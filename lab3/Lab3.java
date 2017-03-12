@@ -380,11 +380,11 @@ public class Lab3 {
 		// reportOneLayerConfig();
 
 		double eta = 0.01;
-		int numHiddenUnits = 100;
+		int numHiddenUnits = 200;
 		OneHiddenLayerClassifier classifier = new OneHiddenLayerClassifier(inputVectorSize, numHiddenUnits, Category.values().length, eta);
 
-		int patience = 40;
-		int epochStep = 3;
+		int patience = 30;
+		int epochStep = 5;
 		System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, epochStep);
 		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
 
