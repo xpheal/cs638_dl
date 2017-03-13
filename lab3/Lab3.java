@@ -33,7 +33,7 @@ public class Lab3 {
 	private static final Boolean    useRGB = true; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
 	private static       int unitsPerPixel = (useRGB ? 4 : 1); // If using RGB, use red+blue+green+grey.  Otherwise just use the grey value.
 			
-	private static String    modelToUse = "oneLayer"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
+	private static String    modelToUse = "deep"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
 	private static int       inputVectorSize;         // The provided code uses a 1D vector of input features.  You might want to create a 2D version for your Deep ANN code.  
 	                                                  // Or use the get2DfeatureValue() 'accessor function' that maps 2D coordinates into the 1D vector.  
 	                                                  // The last element in this vector holds the 'teacher-provided' label of the example.
@@ -386,7 +386,7 @@ public class Lab3 {
 		int patience = 30;
 		int epochStep = 5;
 		System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, epochStep);
-		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
+		classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, false);
 
 		System.out.println("**************** FINAL RESULTS ****************");
 		System.out.println("Test Set result for one hidden layer neural network:");
@@ -414,7 +414,32 @@ public class Lab3 {
 
 
 	private static int trainDeep(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors,	Vector<Vector<Double>> testFeatureVectors) {
-		// You need to implement this method!
+        // Set up training feature vectors
+        if (fractionOfTrainingToUse < 1.0) {  // Randomize list, then get the first N of them.
+            int numberToKeep = (int) (fractionOfTrainingToUse * trainFeatureVectors.size());
+            Vector<Vector<Double>> trainFeatureVectors_temp = new Vector<Vector<Double>>(numberToKeep);
+
+            permute(trainFeatureVectors); // Note: this is an IN-PLACE permute, but that is OK.
+            for (int i = 0; i <numberToKeep; i++) {
+                trainFeatureVectors_temp.add(trainFeatureVectors.get(i));
+            }
+            trainFeatureVectors = trainFeatureVectors_temp;
+        }
+
+        double eta = 0.001;
+        CNNClassifier classifier = new CNNClassifier(imageSize, imageSize, useRGB, Category.values().length, eta);
+
+        int patience = 100;
+        int epochStep = 1;
+
+        System.out.printf("Using: ETA = %f, patience = %d, epochStep = %d\n", eta, patience, epochStep);
+
+        classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
+
+        // System.out.println("**************** FINAL RESULTS ****************");
+        // System.out.println("Test Set result for convolutional neural network:");
+        
+        // return classifier.test(testFeatureVectors, true);
 		return -1;
 	}
 
