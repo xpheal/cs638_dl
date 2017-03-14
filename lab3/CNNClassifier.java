@@ -486,7 +486,7 @@ class CNNetwork{
 		this.learningRate = learningRate;
 
 		// Layer 1
-		layer1ZLength = 7; // number of feature maps of the convolutional layer
+		layer1ZLength = 20; // number of feature maps of the convolutional layer
 		layer1WeightSize = 5;
 		layer1XLength = inputXLength - layer1WeightSize + 1;
 		layer1YLength = inputYLength - layer1WeightSize + 1;
@@ -514,7 +514,7 @@ class CNNetwork{
 		}
 
 		// Layer 3
-		layer3ZLength = 7; // number of feature maps of the convolutional layer
+		layer3ZLength = 20; // number of feature maps of the convolutional layer
 		layer3WeightSize = 5;
 		layer3XLength = layer2XLength - layer3WeightSize + 1;
 		layer3YLength = layer2YLength - layer3WeightSize + 1;
@@ -528,7 +528,7 @@ class CNNetwork{
 		}
 
 		// Output Layer
-		int numHiddenUnits = 20;
+		int numHiddenUnits = 50;
 		outputLayer = new OutputLayer(layer3TotalParams, numHiddenUnits, labelSize, learningRate);
 	}
 

@@ -426,11 +426,11 @@ public class Lab3 {
             trainFeatureVectors = trainFeatureVectors_temp;
         }
 
-        double eta = 0.1;
+        double eta = 0.05;
         CNNClassifier classifier = new CNNClassifier(imageSize, imageSize, useRGB, Category.values().length, eta);
 
-        int patience = 100;
-        int epochStep = 10;
+        int patience = 200;
+        int epochStep = 1;
 
         System.out.printf("Using: ETA = %f, patience = %d, epochStep = %d\n", eta, patience, epochStep);
 
