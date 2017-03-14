@@ -426,7 +426,7 @@ public class Lab3 {
             trainFeatureVectors = trainFeatureVectors_temp;
         }
 
-        double eta = 0.05;
+        double eta = 0.01;
         CNNClassifier classifier = new CNNClassifier(imageSize, imageSize, useRGB, Category.values().length, eta);
 
         int patience = 200;
