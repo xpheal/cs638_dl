@@ -262,8 +262,8 @@ class ConvolutionMap{
 		this.windowX = windowXY;
 		this.windowY = windowXY;
 		this.windowZ = windowZ;
-		this.inputXLength = inputXLength;
-		this.inputYLength = inputYLength;
+		this.inputXLength = outputXLength - 1 + windowX;
+		this.inputYLength = outputYLength - 1 + windowY;
 		this.learningRate = learningRate;
 		this.outputXLength = outputXLength;
 		this.outputYLength = outputYLength;
@@ -357,7 +357,31 @@ class ConvolutionMap{
 
 		// Generate output delta
 		if(outputDeltas != null){
-			// Do something
+			int alteredXLength = inputXLength + windowX - 1;
+			int alteredYLength = inputYLength + windowY - 1;
+			int padX = windowX - 1;
+			int padY = windowY - 1;
+
+			double alteredDeltas[][] = new double[alteredXLength][alteredYLength];
+
+			for(int i = 0; i < outputXLength; i++){
+				for(int j = 0; j < outputYLength; j++){
+					alteredDeltas[i + padX][j + padY] = deltas[i][j][pos];
+				}
+			}
+
+			for(int i = 0; i < inputXLength; i++){
+				for(int j = 0; j < inputYLength; j++){
+					// Loop through weights
+					for(int x = 0; x < windowX; x++){
+						for(int y = 0; y < windowY; y++){
+							for(int z = 0; z < windowZ; z++){
+								outputDeltas[i][j][z] += alteredDeltas[i + x][j + y] * weights[windowX - 1 - x][windowY - 1 - y][z];
+							}
+						}		
+					}
+				}
+			}
 		}
 	}
 
@@ -442,6 +466,12 @@ class CNNetwork{
 	int layer2WeightSize, layer2XLength, layer2YLength, layer2ZLength, layer2TotalParams;
 	double [][][] layer2Output;
 
+	// Layer 3
+	ConvolutionMap convolutionLayer2[];
+	int layer3ZLength, layer3WeightSize, layer3TotalParams;
+	double[][][] layer3Output;
+	int layer3XLength, layer3YLength;
+
 	// Output Layer
 	OutputLayer outputLayer;
 
@@ -456,7 +486,7 @@ class CNNetwork{
 		this.learningRate = learningRate;
 
 		// Layer 1
-		layer1ZLength = 20; // number of feature maps of the convolutional layer
+		layer1ZLength = 7; // number of feature maps of the convolutional layer
 		layer1WeightSize = 5;
 		layer1XLength = inputXLength - layer1WeightSize + 1;
 		layer1YLength = inputYLength - layer1WeightSize + 1;
@@ -483,9 +513,23 @@ class CNNetwork{
 			poolingLayer1[i] = new PoolingMap(layer2WeightSize, layer2XLength, layer2YLength);
 		}
 
+		// Layer 3
+		layer3ZLength = 7; // number of feature maps of the convolutional layer
+		layer3WeightSize = 5;
+		layer3XLength = layer2XLength - layer3WeightSize + 1;
+		layer3YLength = layer2YLength - layer3WeightSize + 1;
+		layer3TotalParams = layer3XLength * layer3YLength * layer3ZLength;
+		layer3Output = new double[layer3XLength][layer3YLength][layer3ZLength];
+
+		convolutionLayer2 = new ConvolutionMap[layer3ZLength];
+
+		for(int i = 0; i < layer3ZLength; i++){
+			convolutionLayer2[i] = new ConvolutionMap(layer3WeightSize, layer2ZLength, learningRate, layer3XLength, layer3YLength);
+		}
+
 		// Output Layer
 		int numHiddenUnits = 20;
-		outputLayer = new OutputLayer(layer2TotalParams, numHiddenUnits, labelSize, learningRate);
+		outputLayer = new OutputLayer(layer3TotalParams, numHiddenUnits, labelSize, learningRate);
 	}
 
 	public double train(Vector<CNNExample> featureVectors){
@@ -501,16 +545,28 @@ class CNNetwork{
 				poolingLayer1[i].feedForward(layer1Output, layer2Output, i);
 			}
 
+			// Layer 3: Convolutional Layer
+			for(int i = 0; i < layer3ZLength; i++){
+				convolutionLayer2[i].feedForward(layer2Output, layer3Output, i);
+			}
+
 			// Output Layer
-			Vector<Double> outputLayerDeltas = outputLayer.train(Utility.convert3Dto1D(layer2Output), e.label);
-			double outputLayer3DDeltas[][][] = Utility.convert1Dto3D(outputLayerDeltas, layer2XLength, layer2YLength, layer2ZLength);
+			Vector<Double> outputLayerDeltas = outputLayer.train(Utility.convert3Dto1D(layer3Output), e.label);
+			double outputLayer3DDeltas[][][] = Utility.convert1Dto3D(outputLayerDeltas, layer3XLength, layer3YLength, layer3ZLength);
 
 			// Backward Pass
+			double convolutionLayer2Deltas[][][] = new double[layer2XLength][layer2YLength][layer2ZLength];
+
+			// Layer 3: Convolutional Layer
+			for(int i = 0; i < layer3ZLength; i++){
+				convolutionLayer2[i].backPropagate(outputLayer3DDeltas, convolutionLayer2Deltas, i);
+			}
+
 			double poolingLayer1Deltas[][][] = new double[layer1XLength][layer1YLength][layer1ZLength];
 
 			// Layer 2: Pooling Layer (Max)
 			for(int i = 0; i < layer2ZLength; i++){
-				poolingLayer1[i].backPropagate(outputLayer3DDeltas, poolingLayer1Deltas, i);
+				poolingLayer1[i].backPropagate(convolutionLayer2Deltas, poolingLayer1Deltas, i);
 			}
 
 			double convolutionLayer1Deltas[][][] = new double[inputXLength][inputYLength][inputZLength];
@@ -543,7 +599,17 @@ class CNNetwork{
 			convolutionLayer1[i].feedForward(example, layer1Output, i);
 		}
 
-		return outputLayer.predict(Utility.convert3Dto1D(layer1Output), actuals);
+		// Layer 2: Pooling Layer (Max)
+		for(int i = 0; i < layer2ZLength; i++){
+			poolingLayer1[i].feedForward(layer1Output, layer2Output, i);
+		}
+
+		// Layer 3: Convolutional Layer
+		for(int i = 0; i < layer3ZLength; i++){
+			convolutionLayer2[i].feedForward(layer2Output, layer3Output, i);
+		}
+
+		return outputLayer.predict(Utility.convert3Dto1D(layer3Output), actuals);
 	}
 
 	// Return the accuracy of the test
