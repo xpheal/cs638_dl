@@ -1,5 +1,118 @@
 import java.util.*;
 
+// Single Perceptron
+class Perceptron{
+	String actFunc; // Activation function to use, valid param = "rec" and "sig"
+	int numIn; // number of input nodes
+	int numOut; // number of nodes this perceptron's output is connected to
+	Vector<Double> inputs; // Store the inputs of the current pass of the perceptron, used in backpropagation
+	double weights[]; // weights of the perceptron
+	double learningRate; // learningRate of the perceptron (ETA)
+	double doutdnet; // Store the derivative of the activation function, used in backpropagation
+
+	// actFunc = activation Function of the perceptron, can be either "rec" for rectified linear or "sig" for sigmoidal
+	// numIn = number of input weights
+	public Perceptron(int numIn, String actFunc, double learningRate, int numOut){
+		if(!actFunc.equals("rec") && !actFunc.equals("sig")){
+			System.err.println("Invalid activation function parameter");
+			System.exit(-1);
+		}
+
+		this.actFunc = actFunc;
+		this.numIn = numIn;
+		this.learningRate = learningRate;
+		this.doutdnet = 0;
+		this.inputs = null;
+
+		weights = new double[numIn + 1]; // +1 for bias
+
+		// Initialize weights
+		for(int i = 0; i < weights.length; i++){
+			weights[i] = Lab3.getRandomWeight(numIn + 1, numOut, actFunc == "rec");
+		}
+	}
+
+	// feedForward algorithm of the perceptron
+	// inputs are the input for the perceptron
+	// return the output of the perceptron
+	public double feedForward(Vector<Double> inputs){
+		this.inputs = inputs;
+		
+		double net = 0;
+
+		for(int i = 0; i < numIn; i++){
+			net += inputs.get(i) * weights[i];
+		}
+
+		net += weights[numIn]; // bias
+
+		switch(actFunc){
+			case "rec":
+				return recL(net);
+			case "sig":
+				return sigM(net);
+			default:
+				System.err.println("Error, shouldn't reach this line of code");
+				System.exit(-1);
+				return -1;
+		}
+	}
+
+	// backpropagation algorithm for the perceptron
+	// delta equals to (dError/dout)
+	// Returns newDeltai = (dError/dout * dout/dnet) * wi for backpropagation
+	public double[] backPropagate(double delta){
+		double newDelta = delta * doutdnet;
+		double deltaList[] = new double[numIn];
+
+		// Update all weights
+		for(int i = 0; i < numIn; i++){
+			deltaList[i] = newDelta * weights[i];
+			double ll = learningRate * newDelta * inputs.get(i);
+			weights[i] -= ll;
+		}
+
+		// Update bias
+		weights[numIn] -= learningRate * newDelta;
+
+		return deltaList;
+	}
+	
+	// Sigmoid function
+	private double sigM(double x){
+		double out = 1 / (1 + Math.exp(-x));
+		doutdnet = out * (1 - out);
+		return out;
+	}
+
+	// Rectified Linear function
+	private double recL(double x){
+		if(x >= 0){
+			doutdnet = 1;
+			return x;
+		}
+		else{
+			doutdnet = 0;
+			return 0;
+		}
+	}
+
+	// Return a copy of weights of the perceptron
+	public double[] getWeights(){
+		return weights.clone();
+	}
+	
+	// Set the weights of the perceptron with param (weights)
+	public void setWeights(double[] weights){
+		if(weights.length != numIn + 1){
+			System.err.println("Wrong number of weights, setWeights fail");
+			System.exit(-1);
+		}
+
+		this.weights = weights;
+	}
+}
+
 // Modified Neural Network to serve as the output layer for CNN
 class OutputLayer{
 	int numInputs; // Number of input nodes coming into the hidden layer
@@ -385,6 +498,14 @@ class ConvolutionMap{
 		}
 	}
 
+	public double[][][] exportWeights(){
+		return weights.clone();
+	}
+
+	public void importWeights(double[][][] weights){
+		this.weights = weights;
+	}
+
 	// Print weights for debugging
 	public void printWeights(){
 		for(int i = 0; i < windowX; i++){
@@ -464,7 +585,7 @@ class CNNetwork{
 	// Layer 2
 	PoolingMap poolingLayer1[];
 	int layer2WeightSize, layer2XLength, layer2YLength, layer2ZLength, layer2TotalParams;
-	double [][][] layer2Output;
+	double[][][] layer2Output;
 
 	// Layer 3
 	ConvolutionMap convolutionLayer2[];
@@ -475,13 +596,18 @@ class CNNetwork{
 	// Layer 4
 	PoolingMap poolingLayer2[];
 	int layer4WeightSize, layer4XLength, layer4YLength, layer4ZLength, layer4TotalParams;
-	double [][][] layer4Output;
+	double[][][] layer4Output;
 
 	// Output Layer
 	OutputLayer outputLayer;
 
 	// Calculating error
 	double totalError;
+
+	// Optimized weights
+	double[][][][] conv1Weights;
+	double[][][][] conv2Weights; 
+	List<List<double[]>> outputWeights;
 
 	public CNNetwork(int xLength, int yLength, int zLength, int labelSize, double learningRate){
 		this.inputXLength= xLength;
@@ -491,7 +617,7 @@ class CNNetwork{
 		this.learningRate = learningRate;
 
 		// Layer 1
-		layer1ZLength = 24; // number of feature maps of the convolutional layer
+		layer1ZLength = 20; // number of feature maps of the convolutional layer
 		layer1WeightSize = 5;
 		layer1XLength = inputXLength - layer1WeightSize + 1;
 		layer1YLength = inputYLength - layer1WeightSize + 1;
@@ -499,10 +625,13 @@ class CNNetwork{
 		layer1Output = new double[layer1XLength][layer1YLength][layer1ZLength];
 
 		convolutionLayer1 = new ConvolutionMap[layer1ZLength];
+		conv1Weights = new double[layer1ZLength][layer1WeightSize][layer1WeightSize][inputZLength];
 
 		for(int i = 0; i < layer1ZLength; i++){
 			convolutionLayer1[i] = new ConvolutionMap(layer1WeightSize, inputZLength, learningRate, layer1XLength, layer1YLength);
 		}
+
+		printLayer(1, "Convolutional Layer", inputXLength, inputYLength, inputZLength, layer1XLength, layer1YLength, layer1ZLength);
 
 		// Layer 2
 		layer2WeightSize = 2;
@@ -518,8 +647,10 @@ class CNNetwork{
 			poolingLayer1[i] = new PoolingMap(layer2WeightSize, layer2XLength, layer2YLength);
 		}
 
+		printLayer(2, "Pooling Layer", layer1XLength, layer1YLength, layer1ZLength, layer2XLength, layer2YLength, layer2ZLength);
+
 		// Layer 3
-		layer3ZLength = 24; // number of feature maps of the convolutional layer
+		layer3ZLength = 20; // number of feature maps of the convolutional layer
 		layer3WeightSize = 5;
 		layer3XLength = layer2XLength - layer3WeightSize + 1;
 		layer3YLength = layer2YLength - layer3WeightSize + 1;
@@ -527,10 +658,13 @@ class CNNetwork{
 		layer3Output = new double[layer3XLength][layer3YLength][layer3ZLength];
 
 		convolutionLayer2 = new ConvolutionMap[layer3ZLength];
+		conv2Weights = new double[layer3ZLength][layer3WeightSize][layer3WeightSize][layer2ZLength];
 
 		for(int i = 0; i < layer3ZLength; i++){
 			convolutionLayer2[i] = new ConvolutionMap(layer3WeightSize, layer2ZLength, learningRate, layer3XLength, layer3YLength);
 		}
+
+		printLayer(3, "Convolutional Layer", layer2XLength, layer2YLength, layer2ZLength, layer3XLength, layer3YLength, layer3ZLength);
 
 		// Layer 4
 		layer4WeightSize = 2;
@@ -546,9 +680,13 @@ class CNNetwork{
 			poolingLayer2[i] = new PoolingMap(layer4WeightSize, layer4XLength, layer4YLength);
 		}
 
+		printLayer(4, "Pooling Layer", layer3XLength, layer3YLength, layer3ZLength, layer4XLength, layer4YLength, layer4ZLength);
+
 		// Output Layer
 		int numHiddenUnits = 150;
 		outputLayer = new OutputLayer(layer4TotalParams, numHiddenUnits, labelSize, learningRate);
+
+		printLayer(5, "Output Layer", layer4XLength, layer4YLength, layer4ZLength, labelSize, 1, 1);
 	}
 
 	public double train(Vector<CNNExample> featureVectors){
@@ -610,14 +748,6 @@ class CNNetwork{
 
 		return 0;
 	}
-
-	// public double test(Vector<CNNExample> featureVectors){
-		// return test(featureVectors, false);
-	// }
-
-	// public double test(Vector<CNNExample> featureVectors, Boolean debug){
-		// return nn.test(featureVectors, debug);
-	// }
 
 	public int predict(double[][][] example){
 		return predict(example, null);
@@ -696,6 +826,30 @@ class CNNetwork{
 		return acc;
 	}
 
+	public void storeOptimalWeights(){
+		for(int i = 0; i < layer1ZLength; i++){
+			conv1Weights[i] = convolutionLayer1[i].exportWeights();
+		}
+
+		for(int i = 0; i < layer3ZLength; i++){
+			conv2Weights[i] = convolutionLayer2[i].exportWeights();
+		}
+
+		outputWeights = outputLayer.exportWeights();
+	}
+
+	public void setOptimalWeights(){
+		for(int i = 0; i < layer1ZLength; i++){
+			convolutionLayer1[i].importWeights(conv1Weights[i]);
+		}
+
+		for(int i = 0; i < layer3ZLength; i++){
+			convolutionLayer2[i].importWeights(conv2Weights[i]);
+		}
+
+		outputLayer.importWeights(outputWeights);
+	}
+
 	// Print out the confusion matrix and return the number of correctly predicted labels
 	// Length of x and y should be the same
 	public int confusionMatrix(int actual[], int predicted[]){
@@ -723,6 +877,11 @@ class CNNetwork{
 		}
 
 		return correct;
+	}
+
+	private void printLayer(int layerIdx, String name, int inX, int inY, int inZ, int outX, int outY, int outZ){
+		System.out.printf("Layer%d: %s\nInput Dimensions: %d x %d x %d\nOutput Dimensions: %d x %d x %d\n",
+			layerIdx, name, inX, inY, inZ, outX, outY, outZ);
 	}
 }
 
@@ -763,7 +922,6 @@ public class CNNClassifier{
 
 		long  overallStart = System.currentTimeMillis(), start = overallStart;
 		double bestAcc = cnn.test(tuneExamples, debug);
-		// List<List<double[]>> optimalWeights = cnn.exportWeights(); // Have to change weights
 		int epoch = 0;
 		int bestTuneEpoch = 0;
 
@@ -788,7 +946,7 @@ public class CNNClassifier{
 				bestTuneEpoch = epoch;
 
 				// Keep track of the optimal weights
-				// optimalWeights = nn.exportWeights();
+				cnn.storeOptimalWeights();
 			}
 
 			System.out.println("Done with Epoch # " + Lab3.comma(epoch) + ".  Took " + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
@@ -797,22 +955,24 @@ public class CNNClassifier{
 			epoch ++;
 		}
 
-		// nn.importWeights(optimalWeights);
+		cnn.setOptimalWeights();
 
 		System.out.printf("\nBest Tuning Set Accuracy: %.4f%% at Epoch: %d\n", bestAcc * 100, bestTuneEpoch);
 	}
 
-	// public double test(Vector<Vector<Double>> featureVectors){
-	// 	return test(featureVectors, false);
-	// }
+	public double test(Vector<Vector<Double>> featureVectors){
+		return test(featureVectors, false);
+	}
 
-	// public double test(Vector<Vector<Double>> featureVectors, Boolean debug){
-	// 	return cnn.test(featureVectors, debug);
-	// }
+	public double test(Vector<Vector<Double>> featureVectors, Boolean debug){
+		Vector<CNNExample> examples = bulkConvert1Dto3D(featureVectors);
+		return cnn.test(examples, debug);
+	}
 
-	// public double predict(Vector<Double> example){
-	// 	return cnn.predict(example);
-	// }
+	public double predict(Vector<Double> example){
+		CNNExample cnnexample = convert1Dto3D(example);
+		return cnn.predict(cnnexample.example);
+	}
 
 	public Vector<CNNExample> bulkConvert1Dto3D(Vector<Vector<Double>> vectors1D){
 		Vector<CNNExample> examples = new Vector<CNNExample>(vectors1D.size());

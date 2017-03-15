@@ -30,7 +30,7 @@ public class Lab3 {
 	                                       // ALL IMAGES IN A TRAINING RUN SHOULD BE THE *SAME* SIZE.
 	private static enum    Category { airplanes, butterfly, flower, grand_piano, starfish, watch };  // We'll hardwire these in, but more robust code would not do so.
 	
-	private static final Boolean    useRGB = true; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
+	private static final Boolean    useRGB = false; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
 	private static       int unitsPerPixel = (useRGB ? 4 : 1); // If using RGB, use red+blue+green+grey.  Otherwise just use the grey value.
 			
 	private static String    modelToUse = "deep"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
@@ -413,7 +413,7 @@ public class Lab3 {
 	////////////////////////////////////////////////////////////////////////////////////////////////  DEEP ANN Code
 
 
-	private static int trainDeep(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors,	Vector<Vector<Double>> testFeatureVectors) {
+	private static double trainDeep(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors,	Vector<Vector<Double>> testFeatureVectors) {
         // Set up training feature vectors
         if (fractionOfTrainingToUse < 1.0) {  // Randomize list, then get the first N of them.
             int numberToKeep = (int) (fractionOfTrainingToUse * trainFeatureVectors.size());
@@ -429,18 +429,18 @@ public class Lab3 {
         double eta = 0.01;
         CNNClassifier classifier = new CNNClassifier(imageSize, imageSize, useRGB, Category.values().length, eta);
 
-        int patience = 200;
-        int epochStep = 1;
+        int patience = 50;
+        int epochStep = 3;
 
+        // EpochStep is the same as batch size
         System.out.printf("Using: ETA = %f, patience = %d, epochStep = %d\n", eta, patience, epochStep);
 
         classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
 
-        // System.out.println("**************** FINAL RESULTS ****************");
-        // System.out.println("Test Set result for convolutional neural network:");
+        System.out.println("**************** FINAL RESULTS ****************");
+        System.out.println("Test Set result for convolutional neural network:");
         
-        // return classifier.test(testFeatureVectors, true);
-		return -1;
+        return classifier.test(testFeatureVectors, true);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
