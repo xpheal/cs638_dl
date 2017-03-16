@@ -337,10 +337,13 @@ class OutputLayer{
 	}
 }
 
+// Filters in the Pooling Layer
 class PoolingMap{
 	int windowX, windowY, outputXLength, outputYLength;
 	int doutdnet[][];
 
+	// WindowXY = pooling layer window, it is a square for now
+	// OutputXLength and OutputYLength = dimensions of the pooling map output
 	public PoolingMap(int windowXY, int outputXLength, int outputYLength){
 		this.windowX = windowXY;
 		this.windowY = windowXY;
@@ -348,6 +351,7 @@ class PoolingMap{
 		this.outputYLength = outputYLength;
 	}
 
+	// Feedforward by downsampling the input using the max function with a window of windowX x windowY
 	public void feedForward(double[][][] inputVectors, double[][][] outputVectors, int pos){
 		doutdnet = new int[outputXLength * windowX][outputYLength * windowY];
 
@@ -396,6 +400,7 @@ class PoolingMap{
 	}
 }
 
+// Filters in the Convolutional Layer
 class ConvolutionMap{
 	int windowX, windowY, windowZ, inputXLength, inputYLength, outputXLength, outputYLength;
 	double weights[][][], inputVectors[][][];
@@ -531,10 +536,12 @@ class ConvolutionMap{
 		}
 	}
 
+	// Export weights so that the optimal weights can be stored
 	public double[][][] exportWeights(){
 		return weights.clone();
 	}
 
+	// Load weights
 	public void importWeights(double[][][] weights){
 		this.weights = weights;
 	}
@@ -554,11 +561,13 @@ class ConvolutionMap{
 		System.out.println("Shared bias: " + bias + "\n");
 	}
 
+	// Sigmoid function
 	public double sigM(double x){
 		return 1 / (1 + Math.exp(-x));
 	}
 }
 
+// Some utility functions to flatten the matrix or convert the matrix to 3D
 class Utility{
 	public static Vector<Double> convert3Dto1D(double[][][] vector3D){
 		return convert3Dto1D(vector3D, vector3D.length, vector3D[0].length, vector3D[0][0].length);
@@ -722,8 +731,11 @@ class CNNetwork{
 		outputLayer = new OutputLayer(layer4TotalParams, numHiddenUnits, labelSize, learningRate, dropout);
 
 		printLayer(5, "Output Layer", layer4XLength, layer4YLength, layer4ZLength, labelSize, 1, 1);
+
+		storeOptimalWeights();
 	}
 
+	// Train the Convolutional Neural Network by feedForwarding the input through layers and then back propagate the error
 	public double train(Vector<CNNExample> featureVectors){
 		for(CNNExample e : featureVectors){
 			// Forward Pass
@@ -784,10 +796,12 @@ class CNNetwork{
 		return 0;
 	}
 
+	// Classify the result
 	public int predict(double[][][] example){
 		return predict(example, null);
 	}
 
+	// Classify the result, actuals is used for calculating errors, set actuals = null for no debug
 	public int predict(double[][][] example, double[] actuals){
 		// Forward Pass
 		// Layer 1: Convolutional Layer
@@ -861,6 +875,7 @@ class CNNetwork{
 		return acc;
 	}
 
+	// Import weights from the CNN and store it
 	public void storeOptimalWeights(){
 		for(int i = 0; i < layer1ZLength; i++){
 			conv1Weights[i] = convolutionLayer1[i].exportWeights();
@@ -873,6 +888,7 @@ class CNNetwork{
 		outputWeights = outputLayer.exportWeights();
 	}
 
+	// Export weights that are stored into the CNN
 	public void setOptimalWeights(){
 		for(int i = 0; i < layer1ZLength; i++){
 			convolutionLayer1[i].importWeights(conv1Weights[i]);
@@ -914,8 +930,9 @@ class CNNetwork{
 		return correct;
 	}
 
+	// Utility function to print details of the layers
 	private void printLayer(int layerIdx, String name, int inX, int inY, int inZ, int outX, int outY, int outZ){
-		System.out.printf("Layer%d: %s\nInput Dimensions: %d x %d x %d\nOutput Dimensions: %d x %d x %d\n",
+		System.out.printf("\nLayer%d: %s\nInput Dimensions: %d x %d x %d\nOutput Dimensions: %d x %d x %d\n",
 			layerIdx, name, inX, inY, inZ, outX, outY, outZ);
 	}
 }
@@ -951,6 +968,7 @@ public class CNNClassifier{
 		cnn = new CNNetwork(xLength, yLength, zLength, labelSize, learningRate, dropout);
 	}
 
+	// Train the Classifier
 	public void train(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, Vector<Vector<Double>> testFeatureVectors, int patience, int epochStep, Boolean debug){
 		Vector<CNNExample> trainExamples = bulkConvert1Dto3D(trainFeatureVectors);
 		Vector<CNNExample> tuneExamples = bulkConvert1Dto3D(tuneFeatureVectors);
@@ -961,6 +979,7 @@ public class CNNClassifier{
 		int epoch = 0;
 		int bestTuneEpoch = 0;
 
+		// Training loop
 		for(int i = 0; i < patience; i++){
 			if(debug){
 				System.out.println("Epoch: " + epoch);
@@ -1010,20 +1029,24 @@ public class CNNClassifier{
 		System.out.printf("\nBest Tuning Set Accuracy: %.4f%% at Epoch: %d\n", bestAcc * 100, bestTuneEpoch);
 	}
 
+	// Test the classifier
 	public double test(Vector<Vector<Double>> featureVectors){
 		return test(featureVectors, false);
 	}
 
+	// Test the classifier
 	public double test(Vector<Vector<Double>> featureVectors, Boolean debug){
 		Vector<CNNExample> examples = bulkConvert1Dto3D(featureVectors);
 		return cnn.test(examples, debug);
 	}
 
+	// Classify the example
 	public double predict(Vector<Double> example){
 		CNNExample cnnexample = convert1Dto3D(example);
 		return cnn.predict(cnnexample.example);
 	}
 
+	// Utility function to convert feature vectors to 3D array in bulk
 	public Vector<CNNExample> bulkConvert1Dto3D(Vector<Vector<Double>> vectors1D){
 		Vector<CNNExample> examples = new Vector<CNNExample>(vectors1D.size());
 
@@ -1035,6 +1058,7 @@ public class CNNClassifier{
 	}
 
 	// Use xLength, yLength and zLength to convert the 1Dvector
+	// Utility function to convert feature vectors to 3D array
 	public CNNExample convert1Dto3D(Vector<Double> vector1D){
 		double vector3D[][][] = new double[xLength][yLength][zLength];
 		int l = 0;

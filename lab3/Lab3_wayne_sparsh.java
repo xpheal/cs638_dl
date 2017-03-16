@@ -30,10 +30,10 @@ public class Lab3_wayne_sparsh {
                                            // ALL IMAGES IN A TRAINING RUN SHOULD BE THE *SAME* SIZE.
     private static enum    Category { airplanes, butterfly, flower, grand_piano, starfish, watch };  // We'll hardwire these in, but more robust code would not do so.
     
-    private static final Boolean    useRGB = false; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
+    private static final Boolean    useRGB = true; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
     private static       int unitsPerPixel = (useRGB ? 4 : 1); // If using RGB, use red+blue+green+grey.  Otherwise just use the grey value.
             
-    private static String    modelToUse = "oneLayer"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
+    private static String    modelToUse = "perceptrons"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
     private static int       inputVectorSize;         // The provided code uses a 1D vector of input features.  You might want to create a 2D version for your Deep ANN code.  
                                                       // Or use the get2DfeatureValue() 'accessor function' that maps 2D coordinates into the 1D vector.  
                                                       // The last element in this vector holds the 'teacher-provided' label of the example.
