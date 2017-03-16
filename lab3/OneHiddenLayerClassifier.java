@@ -281,7 +281,10 @@ public class OneHiddenLayerClassifier{
 			}
 
 			// Get tune set accuracy
-			System.out.println("~~~~Tuneset~~~~");
+			if(debug){
+				System.out.println("~~~~Tuneset~~~~");
+			}
+			
 			double acc = test(tuneFeatureVectors, debug);
 			
 			if(acc > bestAcc){
