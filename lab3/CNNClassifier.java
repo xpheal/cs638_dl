@@ -67,10 +67,13 @@ class Perceptron{
 
 		double net = 0;
 
+		if(Math.random() >= dropOut){
+			doutdnet = 0;
+			return net;
+		}
+
 		for(int i = 0; i < numIn; i++){
-			if(Math.random() >= dropOut){
-				net += inputs.get(i) * weights[i];
-			}
+			net += inputs.get(i) * weights[i];
 		}
 
 		net += weights[numIn]; // bias

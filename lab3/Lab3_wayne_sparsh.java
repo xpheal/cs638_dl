@@ -33,7 +33,7 @@ public class Lab3_wayne_sparsh {
     private static final Boolean    useRGB = false; // If true, FOUR units are used per pixel: red, green, blue, and grey.  If false, only ONE (the grey-scale value).
     private static       int unitsPerPixel = (useRGB ? 4 : 1); // If using RGB, use red+blue+green+grey.  Otherwise just use the grey value.
             
-    private static String    modelToUse = "deep"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
+    private static String    modelToUse = "oneLayer"; // Should be one of { "perceptrons", "oneLayer", "deep" };  You might want to use this if you are trying approaches other than a Deep ANN.
     private static int       inputVectorSize;         // The provided code uses a 1D vector of input features.  You might want to create a 2D version for your Deep ANN code.  
                                                       // Or use the get2DfeatureValue() 'accessor function' that maps 2D coordinates into the 1D vector.  
                                                       // The last element in this vector holds the 'teacher-provided' label of the example.
@@ -342,7 +342,6 @@ public class Lab3_wayne_sparsh {
         // reportPerceptronConfig();
 
         // Set up classifier (best eta = 0.01, patience = 300) grayscale 32x32
-        double eta = 0.01;
         PerceptronClassifier classifier = new PerceptronClassifier(inputVectorSize, Category.values().length, eta);
         int patience = 300;
 
@@ -377,16 +376,15 @@ public class Lab3_wayne_sparsh {
             trainFeatureVectors = trainFeatureVectors_temp;
         }
 
-        // reportOneLayerConfig();
+        reportOneLayerConfig();
 
-        double eta = 0.01;
         int numHiddenUnits = 200;
         OneHiddenLayerClassifier classifier = new OneHiddenLayerClassifier(inputVectorSize, numHiddenUnits, Category.values().length, eta);
 
         int patience = 30;
         int epochStep = 5;
         System.out.printf("Using: ETA = %f, numHiddenUnits = %d, patience = %d, epochStep = %d\n", eta, numHiddenUnits, patience, epochStep);
-        classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, false);
+        classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
 
         System.out.println("**************** FINAL RESULTS ****************");
         System.out.println("Test Set result for one hidden layer neural network:");
@@ -426,19 +424,18 @@ public class Lab3_wayne_sparsh {
             trainFeatureVectors = trainFeatureVectors_temp;
         }
 
-        double eta = 0.001;
+        int patience = 50; // Number of epoch = patience * epochStep to run until accuracy increases, if accuracy doesn't increase, terminate
+        int epochStep = 5; // Batch Size, test the tuning set for accuracy after every epoch = epochStep
+
+        // Output details
+        System.out.println("Convolutional Neural Network Deep Training");
+        System.out.println("Data Info: useRGB = " + useRGB + ", imageSize = " + imageSize + ", fractionOfTrainingToUse = " + truncate(fractionOfTrainingToUse, 2));
+        System.out.printf("Using: ETA = %f, Dropout = %.2f, Patience = %d, BatchSize = %d.\n", eta, dropoutRate, patience, epochStep);
+        System.out.println();
+
         CNNClassifier classifier = new CNNClassifier(imageSize, imageSize, useRGB, Category.values().length, eta, dropoutRate);
 
-        int patience = 50;
-        int epochStep = 5;
-        // String 
-
-        // EpochStep is the same as batch size
-        System.out.println("Convolutional Neural Network Deep Training");
-        // System.out.printf("Data Info: useRGB = %s")
-        System.out.printf("Using: ETA = %f, Dropout = %f, Patience = %d, BatchSize = %d.\n", eta, patience, epochStep);
-
-        classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
+        classifier.train(trainFeatureVectors, tuneFeatureVectors, testFeatureVectors, patience, epochStep, true);
 
         System.out.println("**************** FINAL RESULTS ****************");
         System.out.println("Test Set result for convolutional neural network:");

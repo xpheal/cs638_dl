@@ -210,7 +210,7 @@ public class PerceptronClassifier{
 		double error = (totalError / labelSize) / featureVectors.size();
 
 		if(debug){
-			System.out.printf("Accuracy: %.4f%%\nAverage Error: %.4f%%\n", accuracy * 100, error * 100);
+			System.out.printf("Accuracy: %.4f%%\nMean Squared Error: %.4f%%\n", accuracy * 100, error * 100);
 		}
 
 		return accuracy;
