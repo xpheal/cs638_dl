@@ -67,7 +67,7 @@ class Perceptron{
 
 		double net = 0;
 
-		if(Math.random() >= dropOut){
+		if(Math.random() < dropOut){
 			doutdnet = 0;
 			return net;
 		}
@@ -727,7 +727,7 @@ class CNNetwork{
 		printLayer(4, "Pooling Layer", layer3XLength, layer3YLength, layer3ZLength, layer4XLength, layer4YLength, layer4ZLength);
 
 		// Output Layer
-		int numHiddenUnits = 150;
+		int numHiddenUnits = 100;
 		outputLayer = new OutputLayer(layer4TotalParams, numHiddenUnits, labelSize, learningRate, dropout);
 
 		printLayer(5, "Output Layer", layer4XLength, layer4YLength, layer4ZLength, labelSize, 1, 1);
@@ -994,23 +994,10 @@ public class CNNClassifier{
 			// Get train set accuracy
 			System.out.println("~~~~Trainset~~~~");
 			// Output the results
-			double acctrain = cnn.test(trainExamples, debug);
-			System.out.printf("%.4f%%%n",100*acctrain);
+			double currAcc = cnn.test(trainExamples, debug);
 
-			// Get tune set accuracy
-			System.out.println("~~~~Tuneset~~~~");
-			// Output the results
-			double acctune = cnn.test(tuneExamples, debug);
-			System.out.printf("%.4f%%%n",100*acctune);
-
-			// Get test set accuracy
-			System.out.println("~~~~Testset~~~~");
-			// Output the results
-			double acctest = cnn.test(testExamples, debug);
-			System.out.printf("%.4f%%%n",100*acctest);
-
-			if(acctune > bestAcc){
-				bestAcc = acctune;
+			if(currAcc > bestAcc){
+				bestAcc = currAcc;
 				i = -1;
 				bestTuneEpoch = epoch;
 
