@@ -951,7 +951,7 @@ public class CNNClassifier{
 	CNNetwork cnn;
 	Boolean isRGB;
 	int labelSize;
-	double learningRate;
+	double learningRate, dropout;
 	int xLength, yLength, zLength; // x = height of image (rows), y = width of image (cols), z = 4 if (RGB) else 1 (Grayscale)
 
 	// Assumes that we are training images with the same length and width
@@ -964,6 +964,7 @@ public class CNNClassifier{
 		this.labelSize = labelSize;
 		this.learningRate = learningRate;
 		this.isRGB = isRGB;
+		this.dropout = dropout;
 
 		cnn = new CNNetwork(xLength, yLength, zLength, labelSize, learningRate, dropout);
 	}
@@ -992,7 +993,7 @@ public class CNNClassifier{
 			}
 
 			// Get train set accuracy
-			System.out.println("~~~~Trainset~~~~");
+			// System.out.println("~~~~Trainset~~~~");
 			// Output the results
 			double currAcc = cnn.test(trainExamples, debug);
 
