@@ -276,7 +276,7 @@ public class OneHiddenLayerClassifier{
 
 			// Train in batch before tuning, if epochStep == 1, then its train once and follow by a tune
 			for(int j = 0; j < epochStep; j++){
-				Lab3.permute(trainFeatureVectors);
+				Lab3_wayne_sparsh.permute(trainFeatureVectors);
 				nn.train(trainFeatureVectors);
 			}
 
@@ -293,7 +293,7 @@ public class OneHiddenLayerClassifier{
 				optimalWeights = nn.exportWeights();
 			}
 
-			System.out.println("Done with Epoch # " + Lab3.comma(epoch) + ".  Took " + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
+			System.out.println("Done with Epoch # " + Lab3_wayne_sparsh.comma(epoch) + ".  Took " + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
         	start = System.currentTimeMillis();
 
 			epoch ++;

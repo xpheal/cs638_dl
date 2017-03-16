@@ -28,7 +28,7 @@ class SPerceptron{
 
 		// Initialize weights
 		for(int i = 0; i < weights.length; i++){
-			weights[i] = Lab3.getRandomWeight(numIn + 1, 1, actFunc == "rec");
+			weights[i] = Lab3_wayne_sparsh.getRandomWeight(numIn + 1, 1, actFunc == "rec");
 		}
 	}
 
@@ -145,7 +145,7 @@ public class PerceptronClassifier{
 			}
 
 			for(int j = 0; j < epochStep; j++){
-				Lab3.permute(trainFeatureVectors);
+				Lab3_wayne_sparsh.permute(trainFeatureVectors);
 
 				for(Vector<Double> example : trainFeatureVectors){
 					double actuals[] = new double[labelSize];
@@ -170,7 +170,7 @@ public class PerceptronClassifier{
 				}
 			}
 
-			// System.out.println("Done with Epoch # " + Lab3.comma(epoch) + ".  Took " + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
+			// System.out.println("Done with Epoch # " + Lab3_wayne_sparsh.comma(epoch) + ".  Took " + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
         	// start = System.currentTimeMillis();
 
 			for(int p = 0; p < labelSize; p++){

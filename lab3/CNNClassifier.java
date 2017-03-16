@@ -28,7 +28,7 @@ class Perceptron{
 
 		// Initialize weights
 		for(int i = 0; i < weights.length; i++){
-			weights[i] = Lab3.getRandomWeight(numIn + 1, numOut, actFunc == "rec");
+			weights[i] = Lab3_wayne_sparsh.getRandomWeight(numIn + 1, numOut, actFunc == "rec");
 		}
 	}
 
@@ -387,12 +387,12 @@ class ConvolutionMap{
 		for(int i = 0; i < windowX; i++){
 			for(int j = 0; j < windowY; j++){
 				for(int k = 0; k < windowZ; k++){
-					weights[i][j][k] = Lab3.getRandomWeight(totalWeights, 1, false);
+					weights[i][j][k] = Lab3_wayne_sparsh.getRandomWeight(totalWeights, 1, false);
 				}
 			}
 		}
 
-		bias = Lab3.getRandomWeight(totalWeights, 1, false);
+		bias = Lab3_wayne_sparsh.getRandomWeight(totalWeights, 1, false);
 		doutdnet = new double[outputXLength][outputYLength];
 	}
 
@@ -932,7 +932,7 @@ public class CNNClassifier{
 
 			// Train in batch before tuning, if epochStep == 1, then its train once and follow by a tune
 			for(int j = 0; j < epochStep; j++){
-				Lab3.permute(trainExamples);
+				Lab3_wayne_sparsh.permute(trainExamples);
 				cnn.train(trainExamples);
 			}
 
@@ -949,7 +949,7 @@ public class CNNClassifier{
 				cnn.storeOptimalWeights();
 			}
 
-			System.out.println("Done with Epoch # " + Lab3.comma(epoch) + ".  Took " + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
+			System.out.println("Done with Epoch # " + Lab3_wayne_sparsh.comma(epoch) + ".  Took " + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
   			start = System.currentTimeMillis();
 
 			epoch ++;
