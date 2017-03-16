@@ -38,7 +38,7 @@ public class Lab3_wayne_sparsh {
                                                       // Or use the get2DfeatureValue() 'accessor function' that maps 2D coordinates into the 1D vector.  
                                                       // The last element in this vector holds the 'teacher-provided' label of the example.
 
-    private static double eta       =    0.01, fractionOfTrainingToUse = 1.00, dropoutRate = 0.50; // To turn off drop out, set dropoutRate to 0.0 (or a neg number).
+    private static double eta       =    0.01, fractionOfTrainingToUse = 1.00, dropoutRate = 0.00; // To turn off drop out, set dropoutRate to 0.0 (or a neg number).
     private static int    maxEpochs = 1000; // Feel free to set to a different value.
 
     public static void main(String[] args) {
@@ -427,13 +427,16 @@ public class Lab3_wayne_sparsh {
         }
 
         double eta = 0.001;
-        CNNClassifier classifier = new CNNClassifier(imageSize, imageSize, useRGB, Category.values().length, eta);
+        CNNClassifier classifier = new CNNClassifier(imageSize, imageSize, useRGB, Category.values().length, eta, dropoutRate);
 
         int patience = 50;
         int epochStep = 5;
+        // String 
 
         // EpochStep is the same as batch size
-        System.out.printf("Using: ETA = %f, patience = %d, epochStep = %d\n", eta, patience, epochStep);
+        System.out.println("Convolutional Neural Network Deep Training");
+        // System.out.printf("Data Info: useRGB = %s")
+        System.out.printf("Using: ETA = %f, Dropout = %f, Patience = %d, BatchSize = %d.\n", eta, patience, epochStep);
 
         classifier.train(trainFeatureVectors, tuneFeatureVectors, patience, epochStep, true);
 

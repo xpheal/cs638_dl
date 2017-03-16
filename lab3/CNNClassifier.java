@@ -58,6 +58,35 @@ class Perceptron{
 		}
 	}
 
+	// feedForward algorithm of the perceptron
+	// inputs are the input for the perceptron
+	// return the output of the perceptron
+	// dropout also implemented, dropOut = 0.5 means 50% drop out
+	public double feedForward(Vector<Double> inputs, double dropOut){
+		this.inputs = inputs;
+
+		double net = 0;
+
+		for(int i = 0; i < numIn; i++){
+			if(Math.random() >= dropOut){
+				net += inputs.get(i) * weights[i];
+			}
+		}
+
+		net += weights[numIn]; // bias
+
+		switch(actFunc){
+			case "rec":
+				return recL(net);
+			case "sig":
+				return sigM(net);
+			default:
+				System.err.println("Error, shouldn't reach this line of code");
+				System.exit(-1);
+				return -1;
+		}
+	}
+
 	// backpropagation algorithm for the perceptron
 	// delta equals to (dError/dout)
 	// Returns newDeltai = (dError/dout * dout/dnet) * wi for backpropagation
@@ -122,12 +151,13 @@ class OutputLayer{
 	Vector<Perceptron> outputLayer; // Nodes of the output layer
 	double outputs[];
 	double totalError;
+	double dropout;
 
 	// numInputs = number of inputs into the neural network
 	// numHiddenUnits = number of Perceptrons in the hidden layer
 	// numClass = number of classes to classify or number of distinct label values
 	// learningRate = learning rate of all the perceptrons, aka ETA
-	public OutputLayer(int numInputs, int numHiddenUnits, int numClass, double learningRate){
+	public OutputLayer(int numInputs, int numHiddenUnits, int numClass, double learningRate, double dropout){
 		this.numInputs = numInputs;
 		this.numHiddenUnits = numHiddenUnits;
 		this.numClass = numClass;
@@ -200,7 +230,7 @@ class OutputLayer{
 
 		// Forward pass for the hidden layer
 		for(int i = 0; i < numHiddenUnits; i++){
-			hiddenLayerOutputs.add(i, hiddenLayer.get(i).feedForward(inputs));
+			hiddenLayerOutputs.add(i, hiddenLayer.get(i).feedForward(inputs, dropout));
 		}
 
 		// Forward pass for the output layer
@@ -575,6 +605,7 @@ class CNNetwork{
 	int inputXLength, inputYLength, inputZLength;
 	int labelSize;
 	double learningRate;
+	double dropout;
 
 	// Layer 1
 	ConvolutionMap convolutionLayer1[];
@@ -609,12 +640,13 @@ class CNNetwork{
 	double[][][][] conv2Weights; 
 	List<List<double[]>> outputWeights;
 
-	public CNNetwork(int xLength, int yLength, int zLength, int labelSize, double learningRate){
+	public CNNetwork(int xLength, int yLength, int zLength, int labelSize, double learningRate, double dropout){
 		this.inputXLength= xLength;
 		this.inputYLength = yLength;
 		this.inputZLength = zLength;
 		this.labelSize = labelSize;
 		this.learningRate = learningRate;
+		this.dropout = dropout;
 
 		// Layer 1
 		layer1ZLength = 20; // number of feature maps of the convolutional layer
@@ -684,7 +716,7 @@ class CNNetwork{
 
 		// Output Layer
 		int numHiddenUnits = 150;
-		outputLayer = new OutputLayer(layer4TotalParams, numHiddenUnits, labelSize, learningRate);
+		outputLayer = new OutputLayer(layer4TotalParams, numHiddenUnits, labelSize, learningRate, dropout);
 
 		printLayer(5, "Output Layer", layer4XLength, layer4YLength, layer4ZLength, labelSize, 1, 1);
 	}
@@ -871,7 +903,7 @@ class CNNetwork{
 		for(int i = 0; i < labelSize; i++){
 			System.out.print("|");
 			for(int j = 0; j < labelSize; j++){
-				System.out.printf("%4d |", matrix[i][j]);
+				System.out.printf("%4d |", matrix[j][i]);
 			}
 			System.out.println("\n" + sep);
 		}
@@ -905,7 +937,7 @@ public class CNNClassifier{
 	// Assumes that we are training images with the same length and width
 	// inputVectorSize = length of the width and height of the input vector
 	// isRGB = whether the vectors are in RGB, length of 3rd dimension = 4 if RGB, 1 if not RGB (grayscale)
-	public CNNClassifier(int length, int width, Boolean isRGB, int labelSize, double learningRate){
+	public CNNClassifier(int length, int width, Boolean isRGB, int labelSize, double learningRate, double dropout){
 		this.xLength = length;
 		this.yLength = width;
 		zLength = isRGB ? 4 : 1;
@@ -913,12 +945,13 @@ public class CNNClassifier{
 		this.learningRate = learningRate;
 		this.isRGB = isRGB;
 
-		cnn = new CNNetwork(xLength, yLength, zLength, labelSize, learningRate);
+		cnn = new CNNetwork(xLength, yLength, zLength, labelSize, learningRate, dropout);
 	}
 
-	public void train(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, int patience, int epochStep, Boolean debug){
+	public void train(Vector<Vector<Double>> trainFeatureVectors, Vector<Vector<Double>> tuneFeatureVectors, Vector<Vector<Double>> testFeatureVectors, int patience, int epochStep, Boolean debug){
 		Vector<CNNExample> trainExamples = bulkConvert1Dto3D(trainFeatureVectors);
 		Vector<CNNExample> tuneExamples = bulkConvert1Dto3D(tuneFeatureVectors);
+		Vector<CNNExample> testExamples = bulkConvert1Dto3D(testFeatureVectors);
 
 		long  overallStart = System.currentTimeMillis(), start = overallStart;
 		double bestAcc = cnn.test(tuneExamples, debug);
@@ -936,12 +969,26 @@ public class CNNClassifier{
 				cnn.train(trainExamples);
 			}
 
+			// Get train set accuracy
+			System.out.println("~~~~Trainset~~~~");
+			// Output the results
+			double acctrain = cnn.test(trainExamples, debug);
+			System.out.printf("%.4f%%%n",100*acctrain);
+
 			// Get tune set accuracy
 			System.out.println("~~~~Tuneset~~~~");
-			double acc = cnn.test(tuneExamples, debug);
-			
-			if(acc > bestAcc){
-				bestAcc = acc;
+			// Output the results
+			double acctune = cnn.test(tuneExamples, debug);
+			System.out.printf("%.4f%%%n",100*acctune);
+
+			// Get test set accuracy
+			System.out.println("~~~~Testset~~~~");
+			// Output the results
+			double acctest = cnn.test(testExamples, debug);
+			System.out.printf("%.4f%%%n",100*acctest);
+
+			if(acctune > bestAcc){
+				bestAcc = acctune;
 				i = -1;
 				bestTuneEpoch = epoch;
 
