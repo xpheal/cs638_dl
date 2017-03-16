@@ -931,7 +931,7 @@ public class CNNClassifier{
 	CNNetwork cnn;
 	Boolean isRGB;
 	int labelSize;
-	double learningRate;
+	double learningRate, dropout;
 	int xLength, yLength, zLength; // x = height of image (rows), y = width of image (cols), z = 4 if (RGB) else 1 (Grayscale)
 
 	// Assumes that we are training images with the same length and width
@@ -944,6 +944,7 @@ public class CNNClassifier{
 		this.labelSize = labelSize;
 		this.learningRate = learningRate;
 		this.isRGB = isRGB;
+		this.dropout = dropout;
 
 		cnn = new CNNetwork(xLength, yLength, zLength, labelSize, learningRate, dropout);
 	}
@@ -970,19 +971,19 @@ public class CNNClassifier{
 			}
 
 			// Get train set accuracy
-			System.out.println("~~~~Trainset~~~~");
+			// System.out.println("~~~~Trainset~~~~");
 			// Output the results
 			double acctrain = cnn.test(trainExamples, debug);
 			System.out.printf("%.4f%%%n",100*acctrain);
 
 			// Get tune set accuracy
-			System.out.println("~~~~Tuneset~~~~");
+			// System.out.println("~~~~Tuneset~~~~");
 			// Output the results
 			double acctune = cnn.test(tuneExamples, debug);
 			System.out.printf("%.4f%%%n",100*acctune);
 
 			// Get test set accuracy
-			System.out.println("~~~~Testset~~~~");
+			// System.out.println("~~~~Testset~~~~");
 			// Output the results
 			double acctest = cnn.test(testExamples, debug);
 			System.out.printf("%.4f%%%n",100*acctest);
