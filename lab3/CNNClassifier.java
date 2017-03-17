@@ -63,14 +63,13 @@ class Perceptron{
 	// return the output of the perceptron
 	// dropout also implemented, dropOut = 0.5 means 50% drop out
 	public double feedForward(Vector<Double> inputs, double dropOut){
-		this.inputs = inputs;
-
-		double net = 0;
-
 		if(Math.random() < dropOut){
 			doutdnet = 0;
-			return net;
+			return 0;
 		}
+
+		this.inputs = inputs;
+		double net = 0;
 
 		for(int i = 0; i < numIn; i++){
 			net += inputs.get(i) * weights[i];
@@ -94,6 +93,10 @@ class Perceptron{
 	// delta equals to (dError/dout)
 	// Returns newDeltai = (dError/dout * dout/dnet) * wi for backpropagation
 	public double[] backPropagate(double delta){
+		if(doutdnet == 0){
+			return new double[numIn];
+		}
+
 		double newDelta = delta * doutdnet;
 		double deltaList[] = new double[numIn];
 
@@ -661,7 +664,7 @@ class CNNetwork{
 		this.dropout = dropout;
 
 		// Layer 1
-		layer1ZLength = 20; // number of feature maps of the convolutional layer
+		layer1ZLength = 10; // number of feature maps of the convolutional layer
 		layer1WeightSize = 5;
 		layer1XLength = inputXLength - layer1WeightSize + 1;
 		layer1YLength = inputYLength - layer1WeightSize + 1;
@@ -727,7 +730,7 @@ class CNNetwork{
 		printLayer(4, "Pooling Layer", layer3XLength, layer3YLength, layer3ZLength, layer4XLength, layer4YLength, layer4ZLength);
 
 		// Output Layer
-		int numHiddenUnits = 100;
+		int numHiddenUnits = 50;
 		outputLayer = new OutputLayer(layer4TotalParams, numHiddenUnits, labelSize, learningRate, dropout);
 
 		printLayer(5, "Output Layer", layer4XLength, layer4YLength, layer4ZLength, labelSize, 1, 1);
@@ -983,7 +986,7 @@ public class CNNClassifier{
 		// Training loop
 		for(int i = 0; i < patience; i++){
 			if(debug){
-				System.out.println("Epoch: " + epoch);
+				System.out.println("\nEpoch: " + epoch);
 			}
 
 			// Train in batch before tuning, if epochStep == 1, then its train once and follow by a tune
@@ -992,10 +995,12 @@ public class CNNClassifier{
 				cnn.train(trainExamples);
 			}
 
-			// Get train set accuracy
-			// System.out.println("~~~~Trainset~~~~");
-			// Output the results
-			double currAcc = cnn.test(trainExamples, debug);
+			// Get current accuracy
+			if(debug){
+				System.out.println("~~~Tuning Set~~~");
+			}
+
+			double currAcc = cnn.test(tuneExamples, debug);
 
 			if(currAcc > bestAcc){
 				bestAcc = currAcc;
@@ -1006,7 +1011,10 @@ public class CNNClassifier{
 				cnn.storeOptimalWeights();
 			}
 
-			System.out.println("Done with Epoch # " + Lab3_wayne_sparsh.comma(epoch) + ".  Took " + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
+			if(debug){
+				System.out.println("Done with Epoch # " + Lab3_wayne_sparsh.comma(epoch) + ".  Took " + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - start) + " (" + Lab3_wayne_sparsh.convertMillisecondsToTimeSpan(System.currentTimeMillis() - overallStart) + " overall).");
+			}
+
   			start = System.currentTimeMillis();
 
 			epoch ++;
